@@ -70,31 +70,44 @@ slackInteractions.action('welcome_button', (payload, respond) => {
 app.use('/slack/actions', slackInteractions.expressMiddleware());
 // Example: If you're using a body parser, always put it after the message adapter in the middleware stack
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 
-app.post('/play', function (req, res) {
-  console.log(req.body);
-  res.send(
-    {
-      "text": "It's 80 degrees right now.",
-      "attachments": [
-          {
-              "text":"Partly cloudy today and tomorrow"
-          }
-      ]
-  }
-  );
-})
-
-app.get('/auth', function (req, res){
-  if (req.query.code != null){
+app.get('/auth', (req, res) => {
+  if (req.query.code != null) {
     spotify.get_access_token(req.query.code);
-  }
-  else if (req.query.error != null){
+  } else if (req.query.error != null) {
     console.log(req.query.error);
   }
   res.sendStatus(200);
 });
+
+app.post('/play', async (req, res) => {
+  console.log(req.body);
+  let playinfo = await spotify.play();
+  res.send({
+    "response_type": "in_channel",
+    "text": playinfo
+  });
+});
+
+app.post('/pause', async (req, res) => {
+  let pauseinfo = await spotify.pause();
+  res.send({
+    "response_type": "in_channel",
+    "text": pauseinfo
+  });
+});
+
+app.post('/find', (req, res) => {
+  console.log(req.body);
+  // let findinfo = await spotify.find(req.body.text); MENTION     "text": "<@UK70DC5LG>",
+  res.send({
+    "response_type": "in_channel",
+    "text": "test"
+  });
+})
 
 
 app.listen(port, () => console.log(`App listening on port ${port}!`))

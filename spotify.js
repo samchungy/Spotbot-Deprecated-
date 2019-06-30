@@ -24,9 +24,11 @@ var spotifyApi = new SpotifyWebApi({
 });
 
 //Load Lokijs db
-const CONFIG_FILE = "config.db"
-const SPOTIFY_CONFIG = "spotifyconfig"
-const CONFIG = "config"
+const CONFIG_FILE = "database.db";
+const SPOTIFY_CONFIG = "spotifyconfig";
+const CONFIG = "config";
+const TRACK = "track";
+const DEFAULT_DEVICE_ID = '6d2e33d004c05821b7be5da785dbc3a2c55eeca7';
 const loki = require('lokijs');
 var db = new loki(CONFIG_FILE, {
     autoload: true,
@@ -123,6 +125,7 @@ function initialise() {
     // If collection is empty do not load it.
     if (configs === null || configs.count() == 0) {
         configs = db.addCollection(CONFIG);
+        db.addCollection(TRACK);
         return;
     }
     console.log("Old Config Loaded");
@@ -137,6 +140,99 @@ function initialise() {
     spotifyApi.setRefreshToken(config.refresh_token);
     set_refresh_token_cron_jobs();
     // kick off any program logic or start listening to external events
+    var test = "Let's dance to joy division"
+    // find(test);
+}
+
+/**
+ * Hits play on Spotify
+ */
+async function play() {
+    console.log("play triggered");
+    try {
+        let playerinfo = await spotifyApi.getMyCurrentPlaybackState();
+        console.log(playerinfo);
+        if (playerinfo.body.is_playing != null && playerinfo.body.is_playing) {
+            return (":information_source: Spotify is already playing.")
+        }
+    } catch (error) {
+        console.log("Get player info failed", error);
+    }
+
+    try {
+        console.log("Trying Spotify transfer playback workaround");
+        let devicelist = await spotifyApi.getMyDevices();
+        if (devicelist.body.devices.length == 0){
+            return (":information_source: Your Spotify device is currently closed.");
+        }
+        for (var device of devicelist.body.devices){
+            if (device.id === DEFAULT_DEVICE_ID){
+                try {
+                    var options = {deviceIds : DEFAULT_DEVICE_ID, play: true };
+                    let transferplayback = await spotifyApi.transferMyPlayback(options);
+                    return (":arrow_forward: Spotify is now playing.");
+                } catch (error) {
+                    console.log("Transfer playback failed", error);
+                }
+            }
+        }
+    } catch (error){
+        console.log("Failed Spotify transfer playback workaround",error);
+    }
+}
+/**
+ * Hits pause on Spotify
+ */
+async function pause() {
+    try {
+        let playerinfo = await spotifyApi.getMyCurrentPlaybackState();
+        console.log(playerinfo);
+        console.log(playerinfo.body.is_playing);
+        if (playerinfo.body.is_playing != null){
+            if (!playerinfo.body.is_playing){
+                return ( ":information_source: Spotify is already paused.")
+            }
+            else{
+                try {
+                    let playstate = await spotifyApi.pause();
+                    return (":double_vertical_bar: Spotify is now paused.")
+                } catch (error) {
+                    console.log("Pause on Spotify failed", error);
+                }
+            }
+        }
+        else{
+            return (":information_source: Your Spotify is currently closed.");
+        }
+    } catch (error) {
+        console.log("Get player info failed", error);
+    }
+
+}
+
+/**
+ * Finds songs based on a query on Spotify
+ * @param {String} query Search term
+ */
+async function find(query) {
+    try {
+        let searchresults = await spotifyApi.searchTracks(query, { limit: 21 });
+        if (searchresults.body.tracks.total == 0){
+            //No Tracks found
+            return "No tracks found.";
+        }
+        else{
+            //Store in our db
+            var tracks = db.getCollection(TRACK);
+            tracks.add(searchresults.body.tracks);
+        }
+        console.log(searchresults);
+    } catch (error) {
+        console.log("Find track on Spotify failed", error);
+    }
 }
 
 exports.get_access_token = get_access_token;
+exports.play = play;
+exports.pause = pause;
+exports.find = find;

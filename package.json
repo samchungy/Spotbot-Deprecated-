@@ -1,0 +1,26 @@
+{
+  "name": "spotbot-app",
+  "version": "1.0.0",
+  "description": "## Packages - Nodejs v12.3.1 - Express - bodyparser - spotify-web-api-node - node-slack-sdk - Momentjs - Lokijs - Axios",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/schung2/spotbot.git"
+  },
+  "author": "Sam Chung",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/schung2/spotbot#readme",
+  "dependencies": {
+    "@slack/interactive-messages": "^1.1.1",
+    "@slack/web-api": "^5.0.1",
+    "body-parser": "^1.19.0",
+    "cron": "^1.7.1",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "moment": "^2.24.0",
+    "spotify-web-api-node": "^4.0.0"
+  }
+}
