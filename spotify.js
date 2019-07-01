@@ -148,17 +148,22 @@ function initialise() {
  * Hits play on Spotify
  */
 async function play() {
-    console.log("play triggered");
     try {
         let playerinfo = await spotifyApi.getMyCurrentPlaybackState();
-        console.log(playerinfo);
         if (playerinfo.body.is_playing != null && playerinfo.body.is_playing) {
             return (":information_source: Spotify is already playing.")
+        }
+        if (playerinfo.body.device != null) {
+            try {
+                await spotifyApi.play();
+                return (":arrow_forward: Spotify is now playing.");
+            } catch (error) {
+                console.log("Regular play failed", error);
+            }
         }
     } catch (error) {
         console.log("Get player info failed", error);
     }
-
     try {
         console.log("Trying Spotify transfer playback workaround");
         let devicelist = await spotifyApi.getMyDevices();
