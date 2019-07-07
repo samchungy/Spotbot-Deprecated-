@@ -88,3 +88,6 @@ typings/
 .dynamodb/
 
 .vscode/
+
+# Personal db files
+.db

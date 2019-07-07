@@ -6,7 +6,8 @@ const bodyParser = require('body-parser');
 const app = express();
 
 //Load Spotify local module
-const spotify = require('./spotify');
+const spotify = require('./spotifyController');
+const spotifySetup = require('./spotifyConfig');
 const port = process.env.PORT || 3000;
 // The current date
 const currentTime = new Date().toTimeString();
@@ -24,14 +25,13 @@ app.post('/slack/actions', async (req, res) =>{
   if (payload.actions != null && payload.actions.length > 0){
     // See more tracks button action
     if (payload.actions[0].name == CONSTANTS.SEE_MORE_TRACKS){
-      var test = spotify.get_three_tracks(payload.callback_id);
-      res.send(test);
+      var response = spotify.getThreeTracks(payload.callback_id);
+      res.send(response);
     }
     // Add a song track button
     if (payload.actions[0].name == CONSTANTS.ADD_SONG){
-      console.log(payload.callback_id);
-      var test = spotify.get_three_tracks(payload.callback_id);
-      res.send(test);
+      var response = spotify.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user);
+      res.send(response);
     }
   }
   else{
@@ -39,13 +39,24 @@ app.post('/slack/actions', async (req, res) =>{
   }
 });
 
+app.post('/setup', (req, res) => {
+  if (req.body.text == "setup"){
+    console.log(req.body);
+    res.send(spotifySetup.setup(req.body.user_id, req.body.trigger_id, req.body.response_url));
+  }
+  if (req.body.text == "authenticate"){
+    
+  }
+});
+
+
 app.get('/auth', (req, res) => {
   if (req.query.code != null) {
-    spotify.get_access_token(req.query.code);
+    spotifySetup.getAccessToken(req.query.code);
+    res.send("<script> window.close(); </script>");
   } else if (req.query.error != null) {
     console.log(req.query.error);
   }
-  res.sendStatus(200);
 });
 
 app.post('/play',  async (req, res) => {
@@ -79,7 +90,7 @@ app.post('/find', async (req, res) => {
   }
 else {
   // "text": "<@UK70DC5LG>",
-  let findinfo = await spotify.find(req.body.text, req.body.user_id, req.body.trigger_id);
+  let findinfo = await spotify.find(req.body.text, req.body.trigger_id);
   res.send(findinfo);
 }
 });
