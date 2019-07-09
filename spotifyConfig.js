@@ -21,6 +21,29 @@ var db = new loki(CONSTANTS.CONFIG_FILE, {
     autosave: true
 });
 
+
+/**
+ * Initialise/load the persistant lokijs database, start up CRON jobs.
+ */
+function initialise() {
+    var configs = db.getCollection(CONSTANTS.CONFIG);
+    // If collection is empty do not load it, instead - create a new file
+    if (configs === null || configs.count() == 0) {
+        configs = db.addCollection(CONSTANTS.CONFIG);
+        return;
+    }
+    console.log("Old Auth Loaded");
+    if (isAuthExpired()) {
+        console.log("Need to get a new access token");
+        return;
+    }
+    // Re-configure the Spotify Api
+    var auth = configs.findOne({ name: CONSTANTS.AUTH });
+    spotifyApi.setAccessToken(auth.access_token);
+    spotifyApi.setRefreshToken(auth.refresh_token);
+    setRefreshTokenCronJobs();
+}
+
 /**
  * Get Access and Refresh Token from Spotify.
  * @param {String} code Code passed from Spotify Authorization Code Flow 
@@ -35,11 +58,12 @@ async function getAccessToken(code) {
         spotifyApi.setRefreshToken(getAccess.body['refresh_token']);
         //Save config in our db
         var configs = db.getCollection(CONSTANTS.CONFIG);
-        //If auth is called again, we want to update it
-        if (configs.count() == 0) {
+        var auth = configs.findOne( { name : CONSTANTS.AUTH });
+        //If auth is called again, we just want to update it instead of add a new record
+        if (auth == null) {
             //Save config in our db
             configs.insert([{
-                name: CONSTANTS.SPOTIFY_CONFIG,
+                name: CONSTANTS.AUTH,
                 access_token: spotifyApi.getAccessToken(),
                 refresh_token: spotifyApi.getRefreshToken(),
                 expires: moment().add(1, 'h')
@@ -89,45 +113,19 @@ async function refreshToken() {
  */
 function updateAccess() {
     var configs = db.getCollection(CONSTANTS.CONFIG);
-    var config = configs.findOne({
-        name: CONSTANTS.SPOTIFY_CONFIG
+    var auth = configs.findOne({
+        name: CONSTANTS.AUTH
     });
-    config.access_token = spotifyApi.getAccessToken();
-    config.refresh_token = spotifyApi.getRefreshToken();
-    config.expires = moment().add(1, 'h');
-    configs.update(config);
-}
-
-/**
- * Initialise/load the persistant lokijs database, start up CRON jobs.
- */
-function initialise() {
-    var configs = db.getCollection(CONSTANTS.CONFIG);
-    // If collection is empty do not load it.
-    if (configs === null || configs.count() == 0) {
-        configs = db.addCollection(CONSTANTS.CONFIG);
-        return;
-    }
-    console.log("Old Config Loaded");
-    var config = configs.findOne({
-        name: CONSTANTS.SPOTIFY_CONFIG
-    });
-    if (moment().isAfter(config.expires)) {
-        console.log("Need to get a new access token");
-        return;
-    }
-    spotifyApi.setAccessToken(config.access_token);
-    spotifyApi.setRefreshToken(config.refresh_token);
-    setRefreshTokenCronJobs();
-    // kick off any program logic or start listening to external events
-    var test = "Let's dance to joy division"
-    // find(test);
+    auth.access_token = spotifyApi.getAccessToken();
+    auth.refresh_token = spotifyApi.getRefreshToken();
+    auth.expires = moment().add(1, 'h');
+    configs.update(auth);
 }
 
 function setup(user_id, trigger_id, response_url){
     var configs = db.getCollection(CONSTANTS.CONFIG);
-    var admins = configs.by(CONSTANTS.NAME, CONSTANTS.ADMIN);
-    var auth = configs.by(CONSTANTS.NAME, CONSTANTS.AUTH);
+    var admins = configs.findOne( { name : CONSTANTS.ADMIN });
+    var auth = configs.findOne( { name : CONSTANTS.AUTH });
     // Assign user as admin.
     if (admins == null){
         console.log("Adding admin");
@@ -144,9 +142,20 @@ function setup(user_id, trigger_id, response_url){
     }
 }
 
+function isAuthExpired(){
+    var configs = db.getCollection(CONSTANTS.CONFIG);
+    var auth = configs.findOne( { name : CONSTANTS.AUTH });
+    if (auth != null){
+        if(moment().isAfter(auth.expires)){
+            return true;
+        }
+    }
+    return false;
+}
+
 function authenticate(trigger_id){
     // Create the authorization URL
-    var authorizeURL = spotifyApi.createAuthorizeURL(scopes, trigger_id);
+    var authorizeURL = spotifyApi.createAuthorizeURL(CONSTANTS.SCOPES, trigger_id);
     return {
         response_type: "ephemeral",
         attachments: [
@@ -176,6 +185,7 @@ async function sendToSlack(message, response_url, response_type){
         console.log(error);
     }
 }
+
 
 module.exports = {
     getAccessToken,
