@@ -4,7 +4,9 @@ const SpotifyWebApi = require('spotify-web-api-node');
 //Cron module for scheduling refresh
 const Cronjob = require('cron').CronJob;
 const moment = require('moment');
-const axios = require('axios');
+const slack = require('./slackController');
+var cronjob1 = null;
+var cronjob2 = null;
 
 // Setting credentials can be done in the wrapper's constructor, or using the API object's setters.
 var spotifyApi = new SpotifyWebApi({
@@ -59,22 +61,26 @@ async function getAccessToken(code) {
         //Save config in our db
         var configs = db.getCollection(CONSTANTS.CONFIG);
         var auth = configs.findOne( { name : CONSTANTS.AUTH });
-        //If auth is called again, we just want to update it instead of add a new record
-        if (auth == null) {
-            //Save config in our db
-            configs.insert([{
-                name: CONSTANTS.AUTH,
-                access_token: spotifyApi.getAccessToken(),
-                refresh_token: spotifyApi.getRefreshToken(),
-                expires: moment().add(1, 'h')
-            }]);
-            setRefreshTokenCronJobs();
-        } else {
-            updateAccess();
-        }
+        updateAccess();
+        stopCronJobs();
+        setRefreshTokenCronJobs();
+
+        // if (auth == null) {
+        //     //Save config in our db
+        //     configs.insert([{
+        //         name: CONSTANTS.AUTH,
+        //         access_token: spotifyApi.getAccessToken(),
+        //         refresh_token: spotifyApi.getRefreshToken(),
+        //         expires: moment().add(1, 'h')
+        //     }]);
+        //     setRefreshTokenCronJobs();
+        // } else {
+        //     updateAccess();
+        // }
     } catch (error) {
         console.log("Auth Grant Failed", error);
     }
+    
 }
 
 /**
@@ -82,15 +88,25 @@ async function getAccessToken(code) {
  */
 function setRefreshTokenCronJobs() {
     // Cronjobs to run refresh every 0th and 30th minute.
-    new Cronjob('0 * * * *', () => {
+    cronjob1 = new Cronjob('0 * * * *', () => {
         console.log('Refreshing Token');
         refreshToken();
     }, null, true, 'Australia/Sydney');
 
-    new Cronjob('30 * * * *', () => {
+    cronjob2 = new Cronjob('30 * * * *', () => {
         console.log('Refreshing Token');
         refreshToken();
     }, null, true, 'Australia/Sydney');
+}
+
+function stopCronJobs(){
+    if (cronjob1){
+        cronjob1.stop();
+    }
+    if(cronjob2){
+        ctronjob2.stop();
+    }
+    console.log("Cronjobs disabled");
 }
 
 /**
@@ -133,13 +149,16 @@ function setup(user_id, trigger_id, response_url){
             name: CONSTANTS.ADMIN,
             users: [user_id]
         });
-        sendToSlack("You have been added as the admin of Spotbot", response_url, "ephemeral");
+        // slack.sendToSlack("You have been added as the admin of Spotbot", response_url, "ephemeral");
     }
     // Start Spotify Auth
     if (auth == null){
         console.log("Adding auth");
-        return authenticate(trigger_id);
+        var msg = authenticate(trigger_id);
+        console.log(JSON.toString(msg));
+        return msg;
     }
+    console.log("no action");
 }
 
 function isAuthExpired(){
@@ -154,37 +173,34 @@ function isAuthExpired(){
 }
 
 function authenticate(trigger_id){
+    var configs = db.getCollection(CONSTANTS.CONFIG);
+    var auth = configs.findOne( { name : CONSTANTS.AUTH });
+    if (auth != null){
+        auth.trigger_id = trigger_id;
+        configs.update(auth);
+    }
+    else{
+        configs.insert({
+            name: CONSTANTS.AUTH,
+            trigger_id: trigger_id
+        });
+    }
+
     // Create the authorization URL
     var authorizeURL = spotifyApi.createAuthorizeURL(CONSTANTS.SCOPES, trigger_id);
-    return {
-        response_type: "ephemeral",
-        attachments: [
+    return slack.reply("ephemeral", "Please visit the following link to authenticate your Spotify account", [{
+        fallback: "Please visit the following link to authenticate your Spotify account: " + authorizeURL,
+        actions: [
             {
-                fallback: "Please visit the following link to authenticate your Spotify account: " + authorizeURL,
-                actions: [
-                    {
-                        "type": "button",
-                        "style": "primary",
-                        "text": ":link: Please visit the following link to authenticate your Spotify account",
-                        "url": authorizeURL
-                    }
-                ]
+                "type": "button",
+                "style": "primary",
+                "text": ":link: Authenticate with Spotify",
+                "url": authorizeURL
             }
         ]
-    };
+    }]);
 }
 
-async function sendToSlack(message, response_url, response_type){
-    try {
-        await axios.post(response_url, {
-            "response_type" : response_type,
-            "text" : message
-        });
-        console.log("Message sent");
-    } catch (error) {
-        console.log(error);
-    }
-}
 
 
 module.exports = {
