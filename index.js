@@ -51,6 +51,7 @@ app.post('/setup', (req, res) => {
 
 
 app.get('/auth', (req, res) => {
+  console.log(req.query);
   if (req.query.code != null) {
     spotifySetup.getAccessToken(req.query.code);
     res.send("<script> window.close(); </script>");
@@ -60,7 +61,6 @@ app.get('/auth', (req, res) => {
 });
 
 app.post('/play',  async (req, res) => {
-  console.log(req.body);
   let playinfo = await spotify.play();
   res.send(playinfo);
 });
