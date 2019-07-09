@@ -62,18 +62,12 @@ app.get('/auth', (req, res) => {
 app.post('/play',  async (req, res) => {
   console.log(req.body);
   let playinfo = await spotify.play();
-  res.send({
-    "response_type": "in_channel",
-    "text": playinfo
-  });
+  res.send(playinfo);
 });
 
 app.post('/pause', async (req, res) => {
   let pauseinfo = await spotify.pause();
-  res.send({
-    "response_type": "in_channel",
-    "text": pauseinfo
-  });
+  res.send(pauseinfo);
 });
 
 app.post('/find', async (req, res) => {

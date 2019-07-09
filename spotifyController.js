@@ -69,12 +69,12 @@ async function play() {
     try {
         let playerinfo = await spotify.api.getMyCurrentPlaybackState();
         if (playerinfo.body.is_playing != null && playerinfo.body.is_playing) {
-            return (":information_source: Spotify is already playing.")
+            return reply("in_channel",":information_source: Spotify is already playing.");
         }
         if (playerinfo.body.device != null) {
             try {
                 await spotify.api.play();
-                return (":arrow_forward: Spotify is now playing.");
+                return reply("in_channel", ":arrow_forward: Spotify is now playing.");
             } catch (error) {
                 console.log("Regular play failed", error);
             }
@@ -86,17 +86,18 @@ async function play() {
         console.log("Trying Spotify transfer playback workaround");
         let devicelist = await spotify.api.getMyDevices();
         if (devicelist.body.devices.length == 0) {
-            return (":information_source: Your Spotify device is currently closed.");
+            return reply("in_channel", ":information_source: Your Spotify device is currently closed.");
         }
         for (var device of devicelist.body.devices) {
             if (device.id === DEFAULT_DEVICE_ID) {
                 try {
-                    var options = {
-                        deviceIds: DEFAULT_DEVICE_ID,
-                        play: true
-                    };
-                    let transferplayback = await spotify.api.transferMyPlayback(options);
-                    return (":arrow_forward: Spotify is now playing.");
+                    await spotify.api.transferMyPlayback(
+                        {
+                            deviceIds: DEFAULT_DEVICE_ID,
+                            play: true
+                        }
+                    );
+                    return reply("in_channel", ":arrow_forward: Spotify is now playing.");
                 } catch (error) {
                     console.log("Transfer playback failed", error);
                 }
@@ -105,6 +106,7 @@ async function play() {
     } catch (error) {
         console.log("Failed Spotify transfer playback workaround", error);
     }
+    return reply("in_channel", ":warning: Spotify failed to play");
 }
 /**
  * Hits pause on Spotify
@@ -116,11 +118,11 @@ async function pause() {
         console.log(playerinfo.body.is_playing);
         if (playerinfo.body.is_playing != null) {
             if (!playerinfo.body.is_playing) {
-                return (":information_source: Spotify is already paused.");
+                return reply("in_channel", ":information_source: Spotify is already paused.");
             } else {
                 try {
                     let playstate = await spotify.api.pause();
-                    return (":double_vertical_bar: Spotify is now paused.");
+                    return reply("in_channel", ":double_vertical_bar: Spotify is now paused.");
                 } catch (error) {
                     console.log("Pause on Spotify failed", error);
                 }
@@ -129,9 +131,9 @@ async function pause() {
             try {
                 let devices = await spotify.api.getMyDevices();
                 if (devices.body.devices.length > 0) {
-                    return (":information_source: Spotify is already paused.");
+                    return reply("in_channel", ":information_source: Spotify is already paused.");
                 } else {
-                    return (":information_source: Your Spotify is currently closed.");
+                    return reply("in_channel", ":information_source: Your Spotify is currently closed.");
                 }
             } catch (error) {
                 console.log("Get device info failed", error);
@@ -140,7 +142,7 @@ async function pause() {
     } catch (error) {
         console.log("Get player info failed", error);
     }
-
+    return reply("in_channel", ":warning: Spotify failed to pause");
 }
 /**
  * Gets up to 3 tracks
@@ -151,11 +153,11 @@ function getThreeTracks(trigger_id) {
     var tracks = db.getCollection(CONSTANTS.TRACK);
     var search = tracks.by(CONSTANTS.TRIGGER_ID, trigger_id);
     if (search == null) {
-        return ":slightly_frowning_face: I'm sorry, your search expired. Please try another one."
+        return reply("ephemeral", ":slightly_frowning_face: I'm sorry, your search expired. Please try another one.");
     }
     if (search.tracks.length == 0) {
         tracks.remove(search);
-        return ":information_source: No more tracks. Try another search."
+        return reply("ephemeral", ":information_source: No more tracks. Try another search.");
     }
     // Get 3 tracks, store in previous tracks.
     var previous_tracks = search.tracks.splice(0, 3);
@@ -243,6 +245,23 @@ async function find(query, trigger_id) {
     } catch (error) {
         console.log("Find track on Spotify failed", error);
     }
+}
+
+/**
+ * Reply formatted to Slack format.
+ * @param {string} response_type 
+ * @param {string} text 
+ * @param {[attachment]} attachments 
+ */
+function reply(response_type, text, attachments){
+    var message = {
+        "response_type" : response_type,
+        "text" : text
+    }
+    if (attachments){
+        message.attachments = attachments;
+    }
+    return message
 }
 
 module.exports = {
