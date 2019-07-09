@@ -4,6 +4,7 @@ const CONSTANTS = require('./constants');
 //Cron module for scheduling refresh
 const loki = require('lokijs');
 const spotify = require('./spotifyConfig');
+const slack = require('./slackController');
 var db = new loki(CONSTANTS.TRACKS_FILE, {
     autoload: true,
     autoloadCallback: initialise,
@@ -37,7 +38,7 @@ function addSongToPlaylist(trigger_id, track_uri, slack_user) {
     // Free up memory, remove search from tracks.
     var result = tracks.by(CONSTANTS.TRIGGER_ID, trigger_id);
     if (result == null){
-        return ":slightly_frowning_face: I'm sorry, your search expired. Please try another one."
+        return slack.reply("in_channel", ":slightly_frowning_face: I'm sorry, your search expired. Please try another one.");
     }
     else{
         tracks.remove(result);
@@ -69,12 +70,12 @@ async function play() {
     try {
         let playerinfo = await spotify.api.getMyCurrentPlaybackState();
         if (playerinfo.body.is_playing != null && playerinfo.body.is_playing) {
-            return reply("in_channel",":information_source: Spotify is already playing.");
+            return slack.reply("in_channel",":information_source: Spotify is already playing.");
         }
         if (playerinfo.body.device != null) {
             try {
                 await spotify.api.play();
-                return reply("in_channel", ":arrow_forward: Spotify is now playing.");
+                return slack.reply("in_channel", ":arrow_forward: Spotify is now playing.");
             } catch (error) {
                 console.log("Regular play failed", error);
             }
@@ -86,7 +87,7 @@ async function play() {
         console.log("Trying Spotify transfer playback workaround");
         let devicelist = await spotify.api.getMyDevices();
         if (devicelist.body.devices.length == 0) {
-            return reply("in_channel", ":information_source: Your Spotify device is currently closed.");
+            return slack.reply("in_channel", ":information_source: Your Spotify device is currently closed.");
         }
         for (var device of devicelist.body.devices) {
             if (device.id === DEFAULT_DEVICE_ID) {
@@ -97,7 +98,7 @@ async function play() {
                             play: true
                         }
                     );
-                    return reply("in_channel", ":arrow_forward: Spotify is now playing.");
+                    return slack.reply("in_channel", ":arrow_forward: Spotify is now playing.");
                 } catch (error) {
                     console.log("Transfer playback failed", error);
                 }
@@ -106,7 +107,7 @@ async function play() {
     } catch (error) {
         console.log("Failed Spotify transfer playback workaround", error);
     }
-    return reply("in_channel", ":warning: Spotify failed to play");
+    return slack.reply("in_channel", ":warning: Spotify failed to play");
 }
 /**
  * Hits pause on Spotify
@@ -118,11 +119,11 @@ async function pause() {
         console.log(playerinfo.body.is_playing);
         if (playerinfo.body.is_playing != null) {
             if (!playerinfo.body.is_playing) {
-                return reply("in_channel", ":information_source: Spotify is already paused.");
+                return slack.reply("in_channel", ":information_source: Spotify is already paused.");
             } else {
                 try {
                     let playstate = await spotify.api.pause();
-                    return reply("in_channel", ":double_vertical_bar: Spotify is now paused.");
+                    return slack.reply("in_channel", ":double_vertical_bar: Spotify is now paused.");
                 } catch (error) {
                     console.log("Pause on Spotify failed", error);
                 }
@@ -131,9 +132,9 @@ async function pause() {
             try {
                 let devices = await spotify.api.getMyDevices();
                 if (devices.body.devices.length > 0) {
-                    return reply("in_channel", ":information_source: Spotify is already paused.");
+                    return slack.reply("in_channel", ":information_source: Spotify is already paused.");
                 } else {
-                    return reply("in_channel", ":information_source: Your Spotify is currently closed.");
+                    return slack.reply("in_channel", ":information_source: Your Spotify is currently closed.");
                 }
             } catch (error) {
                 console.log("Get device info failed", error);
@@ -142,10 +143,10 @@ async function pause() {
     } catch (error) {
         console.log("Get player info failed", error);
     }
-    return reply("in_channel", ":warning: Spotify failed to pause");
+    return slack.reply("in_channel", ":warning: Spotify failed to pause");
 }
 /**
- * Gets up to 3 tracks
+ * Gets up to 3 tracks from our local db
  * @param {Slack trigger id} trigger_id 
  */
 function getThreeTracks(trigger_id) {
@@ -153,70 +154,42 @@ function getThreeTracks(trigger_id) {
     var tracks = db.getCollection(CONSTANTS.TRACK);
     var search = tracks.by(CONSTANTS.TRIGGER_ID, trigger_id);
     if (search == null) {
-        return reply("ephemeral", ":slightly_frowning_face: I'm sorry, your search expired. Please try another one.");
+        return slack.reply("ephemeral", ":slightly_frowning_face: I'm sorry, your search expired. Please try another one.");
     }
     if (search.tracks.length == 0) {
         tracks.remove(search);
-        return reply("ephemeral", ":information_source: No more tracks. Try another search.");
+        return slack.reply("ephemeral", ":information_source: No more tracks. Try another search.");
     }
     // Get 3 tracks, store in previous tracks.
     var previous_tracks = search.tracks.splice(0, 3);
     var slack_attachments = []
     if (previous_tracks.length != 0) {
         for (let track of previous_tracks) {
-            slack_attachments.push(spotifyToSlackAttachment(track, trigger_id));
+            slack_attachments.push(slack.spotifyToSlackAttachment(track, trigger_id));
         }
     }
     // Update DB
     tracks.update(search);
 
     if (slack_attachments.length == 0) {
-        console.log("none");
-        return {
-            "response_type": "ephemeral",
-            "text": "No more tracks, try another search."
-        }
+        return slack.reply("ephemeral", "No more tracks, try another search.");
     } else {
-        slack_attachments.push({
-            "callback_id": trigger_id,
-            "fallback": "See more tracks",
-            "actions": [{
-                "text": "See more tracks",
-                "type": "button",
-                "name": CONSTANTS.SEE_MORE_TRACKS,
-                "value": CONSTANTS.SEE_MORE_TRACKS
-            }]
-        });
-        var response = {
-            "response_type": "ephemeral",
-            "text": "Are these the tracks you were looking for?",
-            "attachments": slack_attachments
-        };
-        return response;
+        // Push a see more tracks button.
+        slack_attachments.push(
+            {
+                "callback_id": trigger_id,
+                "fallback": "See more tracks",
+                "actions": [{
+                    "text": "See more tracks",
+                    "type": "button",
+                    "name": CONSTANTS.SEE_MORE_TRACKS,
+                    "value": CONSTANTS.SEE_MORE_TRACKS
+                }]
+            });
+        return slack.reply("ephemeral", "Are these the tracks you were looking for?", slack_attachments);
     }
 }
 
-function spotifyToSlackAttachment(track, trigger_id) {
-    var artist = track.artists[0].name;
-    var album = track.album.name;
-    var image = track.album.images[0].url;
-    var attachment = {
-        "color": "#36a64f",
-        "title": track.name,
-        "title_link": track.external_urls.spotify,
-        "text": `:studio_microphone: *Artist* ${artist}\n\n :cd: *Album* ${album}`,
-        "thumb_url": `${image}`,
-        "callback_id": trigger_id,
-        "actions": [{
-            "text": "Add to playlist",
-            "type": "button",
-            "style": "primary",
-            "name": CONSTANTS.ADD_SONG,
-            "value": track.uri
-        }]
-    }
-    return attachment;
-}
 /**
  * Finds songs based on a query on Spotify
  * @param {String} query Search term
@@ -228,10 +201,7 @@ async function find(query, trigger_id) {
         });
         if (searchresults.body.tracks.items.length == 0) {
             //No Tracks found
-            return {
-                "response_type": "ephemeral",
-                "text": `:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?`
-            }
+            return slack.reply("ephemeral", `:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?`);
         } else {
             // Store in our db
             var tracks = db.getCollection(CONSTANTS.TRACK);
@@ -245,23 +215,6 @@ async function find(query, trigger_id) {
     } catch (error) {
         console.log("Find track on Spotify failed", error);
     }
-}
-
-/**
- * Reply formatted to Slack format.
- * @param {string} response_type 
- * @param {string} text 
- * @param {[attachment]} attachments 
- */
-function reply(response_type, text, attachments){
-    var message = {
-        "response_type" : response_type,
-        "text" : text
-    }
-    if (attachments){
-        message.attachments = attachments;
-    }
-    return message
 }
 
 module.exports = {
