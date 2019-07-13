@@ -15,8 +15,13 @@ module.exports = {
     SCOPES : ['user-read-recently-played',
         'user-read-playback-state',
         'user-modify-playback-state',
+        'playlist-read-collaborative',
+        'playlist-read-private',
         'playlist-modify-public',
+        'playlist-modify-private',
         'streaming'],
     SEE_MORE_TRACKS : "SEEMORETRACKS",
-    ADD_SONG : "ADDSONG"
+    ADD_SONG : "ADDSONG",
+    CRONJOB1 : "CRONJOB1",
+    CRONJOB2 : "CRONJOB2"
 }
