@@ -61,7 +61,7 @@ function setup(user_id, trigger_id, response_url){
             name: CONSTANTS.ADMIN,
             users: [user_id]
         });
-        slack.send("ephemeral","You have been added as the admin of Spotbot", response_url);
+        slack.send(slack.reply("ephemeral","You have been added as the admin of Spotbot"), response_url);
     }
     // Start Spotify Auth
     if (auth == null){
@@ -79,30 +79,27 @@ function setup(user_id, trigger_id, response_url){
  * @param {Slack trigger id} trigger_id 
  * @param {Slack response url} response_url 
  */
-function authenticate(trigger_id, response_url){
+function authenticate(trigger_id, response_url, channel_id, team_id){
     var configs = db.getCollection(CONSTANTS.CONFIG);
     var auth = configs.findOne( { name : CONSTANTS.AUTH });
     var thirty = moment().add(30, 'm');
     // If previously exists:
-    if (auth != null){
-        auth.trigger_id = trigger_id;
-        auth.trigger_expires = thirty
-        auth.response_url = response_url
-        configs.update(auth);
-    }
-    // If not create one:
-    else{
+    if (auth == null){
         configs.insert({
             name: CONSTANTS.AUTH,
-            trigger_id: trigger_id,
-            trigger_expires: thirty,
-            response_url: response_url
         });
+        auth = configs.findOne( { name : CONSTANTS.AUTH });
     }
+    auth.trigger_id = trigger_id;
+    auth.trigger_expires = thirty;
+    auth.response_url = response_url;
+    auth.channel_id = channel_id;
+    auth.team_id = team_id;
+    configs.update(auth);
 
     // Create the authorization URL
     var authorizeURL = spotifyApi.createAuthorizeURL(CONSTANTS.SCOPES, trigger_id);
-    return slack.reply("ephemeral", "Please visit the following link to authenticate your Spotify account. You have 30 minutes to authenticate.", [{
+    return slack.deleteReply("ephemeral", "Please visit the following link to authenticate your Spotify account. You have 30 minutes to authenticate.", [{
         fallback: "Please visit the following link to authenticate your Spotify account: " + authorizeURL,
         actions: [
             {
@@ -126,12 +123,15 @@ async function getAccessToken(code, state) {
             name: CONSTANTS.AUTH
         });
         if (auth.trigger_id != state){
-            return ("Invalid State, Please re-authenticate again");
+            slack.send(slack.reply("ephemeral",":no_entry: Invalid State, Please re-authenticate again"), auth.response_url);   
+            return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
+
         }
         else if (moment().isAfter(auth.trigger_expires)){
             console.log(moment().format());
             console.log(auth.trigger_expires.format());
-            return ("Your authentication window has expired. Please re-authenticate again");
+            slack.send(slack.reply("ephemeral",":no_entry: Your authentication window has expired. Please re-authenticate again"), auth.response_url);   
+            return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
         else{
             let getAccess = await (spotifyApi.authorizationCodeGrant(code))
@@ -150,8 +150,13 @@ async function getAccessToken(code, state) {
             let profile = await spotifyApi.getMe();
             auth.id = profile.body.id;
             configs.update(auth);
-            slack.send("ephemeral","Successfully authenticated :white_check_mark:", auth.response_url);
-            return "<script> window.close(); </script>";
+            var settings = configs.findOne( {name: CONSTANTS.SPOTIFY_CONFIG });
+            var text = ":white_check_mark: Successfully authenticated."
+            if (settings == null){
+                text += " Run `/spotbot settings` to setup Spotify. "
+            }
+            slack.send(slack.reply("ephemeral",text), auth.response_url);
+            return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
     } catch (error) {
         console.log("Auth Grant Failed", error);
@@ -372,7 +377,8 @@ async function verify(submission){
     var auth = configs.findOne( {name: CONSTANTS.AUTH });
     //Validate submissions
     var errors = [];
-    if (submission.disable_repeats && submission.disable_repeats == ('no') && submission.disable_repeats_duration && !isPositiveInteger(submission.disable_repeats_duration)){
+    if ((submission.disable_repeats && submission.disable_repeats == ('no') && submission.disable_repeats_duration && !isPositiveInteger(submission.disable_repeats_duration))
+    || (submission.disable_repeats && submission.disable_repeats == ('yes') && (!submission.disable_repeats_duration || !isPositiveInteger(submission.disable_repeats_duration)))){
         errors.push(
             {
                 "name": "disable_repeats_duration",
