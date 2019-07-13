@@ -90,4 +90,4 @@ typings/
 .vscode/
 
 # Personal db files
-.db
+*.db
