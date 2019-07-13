@@ -5,6 +5,7 @@ const CONSTANTS = require('./constants');
 const loki = require('lokijs');
 const spotify = require('./spotifyConfig');
 const slack = require('./slackController');
+const moment = require('moment');
 var db = new loki(CONSTANTS.TRACKS_FILE, {
     autoload: true,
     autoloadCallback: initialise,
@@ -14,34 +15,54 @@ var db = new loki(CONSTANTS.TRACKS_FILE, {
 //Load Lokijs db
 const DEFAULT_DEVICE_ID = '6d2e33d004c05821b7be5da785dbc3a2c55eeca7';
 
-function addSongToPlaylist(trigger_id, track_uri, slack_user) {
+async function addSongToPlaylist(trigger_id, track_uri, slack_user, channel_id) {
     // Add song to Spotify playlist
-    var playlist = spotify.configDb.getCollection(CONSTANTS.PLAYLIST)
-    // let add_result = await spotify.api.addTracksToPlaylist()
-
-    var history = db.getCollection(CONSTANTS.HISTORY);
-    var tracks = db.getCollection(CONSTANTS.TRACK);
-    var search = tracks.by(CONSTANTS.TRACK_URI, track_uri);
-    // Look for existing song
-    if (search == null) {
-        // Insert a new history record.
-        var new_history = {
-            slack_user: slack_user.id
+    var configs = spotify.configDb.getCollection(CONSTANTS.CONFIG);
+    var settings = configs.findOne( { name : CONSTANTS.SPOTIFY_CONFIG });
+    var playlistid = settings.playlist_id;
+    var regex = /[^:]+$/;
+    var found = track_uri.match(regex);
+    var track_id = found[0];
+    
+    try {
+        spotify.api.addTracksToPlaylist(playlistid, [track_uri]);
+        let trackinfo = await spotify.api.getTrack(track_id);
+        var history = db.getCollection(CONSTANTS.HISTORY);
+        var tracks = db.getCollection(CONSTANTS.TRACK);
+        var search = tracks.findOne( { track : track_uri} );
+        var name = trackinfo.body.name;
+        var artist = trackinfo.body.artists[0].name;
+        // Look for existing song
+        if (search == null) {
+            // Insert a new history record.
+            var new_history = {
+                track: track_uri,
+                artist: artist,
+                name: name,
+                slack_user: slack_user.id,
+                time : moment()
+            }
+            history.insert(new_history);
+        } else {
+            // Update history record with new user
+            search.slack_user = slack_user.id;
+            history.update(search);
         }
-        new_history[CONSTANTS.TRACK_URI] = track_uri;
-        history.insert(new_history);
-    } else {
-        // Update history record with new user
-        search.slack_user = slack_user.id;
-        history.update(search);
-    }
-    // Free up memory, remove search from tracks.
-    var result = tracks.by(CONSTANTS.TRIGGER_ID, trigger_id);
-    if (result == null){
-        return slack.reply("in_channel", ":slightly_frowning_face: I'm sorry, your search expired. Please try another one.");
-    }
-    else{
-        tracks.remove(result);
+        // Free up memory, remove search from tracks.
+        search_term = {};
+        search_term[CONSTANTS.TRIGGER_ID] = trigger_id;
+        var result = tracks.findOne(search_term);
+        if (result != null) {
+            tracks.remove(result);
+        }
+        var params = {
+            token: process.env.SLACK_TOKEN,
+            channel: channel_id,
+            text: `:tada: ${artist} - ${name} was added to the playlist.`
+        };
+        return params;
+    } catch (error) {
+        console.log(error);
     }
 }
 
@@ -149,7 +170,7 @@ async function pause() {
  * Gets up to 3 tracks from our local db
  * @param {Slack trigger id} trigger_id 
  */
-function getThreeTracks(trigger_id) {
+function getThreeTracks(trigger_id, pagenum) {
     // Get tracks from DB
     var tracks = db.getCollection(CONSTANTS.TRACK);
     var search = tracks.by(CONSTANTS.TRIGGER_ID, trigger_id);
@@ -160,11 +181,17 @@ function getThreeTracks(trigger_id) {
         tracks.remove(search);
         return slack.reply("ephemeral", ":information_source: No more tracks. Try another search.");
     }
+    if (pagenum == null){
+        var pagenum = 1;
+    }
+    else{
+        pagenum = parseInt(pagenum);
+    }
     // Get 3 tracks, store in previous tracks.
-    var previous_tracks = search.tracks.splice(0, 3);
+    var current_tracks = search.tracks.splice(0, 3);
     var slack_attachments = []
-    if (previous_tracks.length != 0) {
-        for (let track of previous_tracks) {
+    if (current_tracks.length != 0) {
+        for (let track of current_tracks) {
             slack_attachments.push(slack.spotifyToSlackAttachment(track, trigger_id));
         }
     }
@@ -177,16 +204,17 @@ function getThreeTracks(trigger_id) {
         // Push a see more tracks button.
         slack_attachments.push(
             {
+                "text": `Page: ${pagenum}/${search.total_pages}`,
                 "callback_id": trigger_id,
                 "fallback": "See more tracks",
                 "actions": [{
                     "text": "See more tracks",
                     "type": "button",
                     "name": CONSTANTS.SEE_MORE_TRACKS,
-                    "value": CONSTANTS.SEE_MORE_TRACKS
+                    "value": pagenum+1
                 }]
             });
-        return slack.reply("ephemeral", "Are these the tracks you were looking for?", slack_attachments);
+       return slack.reply("ephemeral", "Are these the tracks you were looking for?", slack_attachments);
     }
 }
 
@@ -206,11 +234,12 @@ async function find(query, trigger_id) {
             // Store in our db
             var tracks = db.getCollection(CONSTANTS.TRACK);
             var newtrack = {
-                tracks: searchresults.body.tracks.items
+                tracks: searchresults.body.tracks.items,
+                total_pages: Math.ceil(searchresults.body.tracks.items.length / 3)
             }
             newtrack[CONSTANTS.TRIGGER_ID] = trigger_id
             tracks.insert(newtrack);
-            return getThreeTracks(trigger_id);
+            return getThreeTracks(trigger_id, null);
         }
     } catch (error) {
         console.log("Find track on Spotify failed", error);
