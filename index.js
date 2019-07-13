@@ -31,7 +31,6 @@ app.post('/slack/actions', async (req, res) =>{
     }
     // Add a song track button
     else if (payload.actions[0].name == CONSTANTS.ADD_SONG){
-      console.log(payload);
       let response = await spotify.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user, payload.channel.id);
       res.send(slack.deleteReply("ephemeral", ""));
       slack.post(response);
@@ -40,8 +39,14 @@ app.post('/slack/actions', async (req, res) =>{
   else{
     if (payload.callback_id == CONSTANTS.SPOTIFY_CONFIG){
       let response = await spotifySetup.verify(payload.submission);
-      res.send();
-      slack.send(response, payload.response_url);
+      if (response.errors != null){
+        res.send(response);
+      }
+      else{
+        res.send();
+        slack.send(response, payload.response_url);
+      }
+      
     }
     else{
       res.send("Inavlid Command");
@@ -50,6 +55,7 @@ app.post('/slack/actions', async (req, res) =>{
 });
 
 app.post('/setup', async (req, res) => {
+  console.log
   if (req.body.text == "setup"){
     res.send();
     let response = spotifySetup.setup(req.body.user_id, req.body.trigger_id, req.body.response_url)
@@ -57,7 +63,7 @@ app.post('/setup', async (req, res) => {
   }
   if (req.body.text == "auth"){
     res.send();
-    let response = spotifySetup.authenticate(req.body.trigger_id, req.body.response_url)
+    let response = spotifySetup.authenticate(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.body.team_id);
     slack.send(response, req.body.response_url);
   }
   if (req.body.text == "settings"){
@@ -73,7 +79,7 @@ app.post('/setup', async (req, res) => {
 app.get('/auth', async (req, res) => {
   if (req.query.code != null) {
     let response = await spotifySetup.getAccessToken(req.query.code, req.query.state);
-    res.send(response);
+    res.redirect(response);
   } else if (req.query.error != null) {
     console.log(req.query.error);
   }
