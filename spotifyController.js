@@ -16,7 +16,7 @@ var db = new loki(CONSTANTS.TRACKS_FILE, {
 //Load Lokijs db
 const DEFAULT_DEVICE_ID = '6d2e33d004c05821b7be5da785dbc3a2c55eeca7';
 
-async function isRepeat(disable_repeats_duration, time){
+function isRepeat(disable_repeats_duration, time){
     if (moment(time).add(disable_repeats_duration, 'h').isAfter(moment())){
         return true;
     }
@@ -33,12 +33,10 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user, channel_id) 
     var found = track_uri.match(regex);
     var track_id = found[0];
     var params = {
-        token: process.env.SLACK_TOKEN,
         channel: channel_id
     };
     
     try {
-        spotify.api.addTracksToPlaylist(playlistid, [track_uri]);
         let trackinfo = await spotify.api.getTrack(track_id);
         var history = db.getCollection(CONSTANTS.HISTORY);
         var tracks = db.getCollection(CONSTANTS.TRACK);
@@ -59,20 +57,23 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user, channel_id) 
         } else {
             // Update history record with new user
             search.slack_user = slack_user.id;
-            if (settings.disable_repeats){
-                console.log("Settings repeat");
-                let repeat = await isRepeat(settings.disable_repeats_duration, search.time);
-                console.log("isRepeat");
-                console.log(repeat);
-                console.log(moment.duration(moment().diff(search.time)).humanize())
-                if (repeat){
-                    params.text = `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(search.time)).humanize()} ago.`;
-                    return params;
+            if (settings.disable_repeats_duration){
+                // Check Song is actually in the Spotify playlist and if it was added within disable_repeats_duration
+                let playlist_tracks = await spotify.api.getPlaylistTracks(settings.playlist_id);
+                for (let item of playlist_tracks.body.items){
+                    if (item.track.uri == track_uri && isRepeat(settings.disable_repeats_duration, search.time)){
+                        params.text = `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(search.time)).humanize()} ago.`;
+                        return params;
+                    }
                 }
+            }
+            else{
+                console.log("Not duration");
             }
             search.time = moment();
             history.update(search);
         }
+        spotify.api.addTracksToPlaylist(playlistid, [track_uri]);
         // Free up memory, remove search from tracks.
         search_term = {};
         search_term[CONSTANTS.TRIGGER_ID] = trigger_id;
@@ -283,6 +284,143 @@ async function find(query, trigger_id) {
     }
 }
 
+async function whom() {
+    var history = db.getCollection(CONSTANTS.HISTORY);
+    var configs = spotify.configDb.getCollection(CONSTANTS.CONFIG);
+    var settings = configs.findOne( {name: CONSTANTS.SPOTIFY_CONFIG });
+    var regex = /[^:]+$/;
+    var found;
+    try {
+        let currentsong = await spotify.api.getMyCurrentPlayingTrack();
+        console.log(currentsong);
+        if (currentsong.statusCode == '204'){
+            return slack.reply("in_channel", ":information_source: Spotify is currently not playing.");
+        }
+        //Check if Spotify is playing from the playlist.
+        if(currentsong.body.context == null || (currentsong.body.context.uri && (found = currentsong.body.context.uri.match(regex)) && found[0] != settings.playlist_id)){
+            return slack.reply("in_channel", `:information_source: Spotify is not playing from the playlist. Current Song: ${currentsong.body.item.artists[0].name} - ${currentsong.body.item.name}`);
+        }
+        else {
+            var track = history.findOne({
+                track: currentsong.body.item.uri
+            })
+            if (track != null) {
+                return slack.reply("in_channel", `:microphone: ${currentsong.body.item.artists[0].name} - ${currentsong.body.item.name} was last requested by <@${track.slack_user}>`);
+            } else {
+                let playlist_tracks = await spotify.api.getPlaylistTracks(settings.playlist_id);
+                for (let item of playlist_tracks.body.items) {
+                    if (item.track.uri == currentsong.body.item.uri) {
+                        return slack.reply("in_channel", `:white_frowning_face: ${currentsong.body.item.artists[0].name} - ${currentsong.body.item.name} was added directly to the Spotify by ${item.added_by.id}`);
+                    }
+                }
+            }
+        }
+        console.log("made it to the end");
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function skip_attachment(slack_users, num_votes, track_uri){
+    var users = "";
+    var votes_word = "votes";
+    console.log(slack_users);
+    for (let user of slack_users){
+        users += `<@${user}> `
+    }
+    if (num_votes == 1){
+        votes_word = "vote";
+    }
+    var attachment = {
+        "text": `Votes: ${users}`,
+        "footer": `${num_votes} more ${votes_word} needed.`,
+        "fallback": `Votes: ${users}`,
+        "callback_id": track_uri,
+        "color": "#3AA3E3",
+        "attachment_type": "default",
+        "actions": [
+            {
+                "name": CONSTANTS.SKIP,
+                "text": "Skip",
+                "type": "button",
+                "value": "skip"
+            }
+        ]
+    }
+    return attachment;
+}
+
+async function skip(slack_user){
+    var configs = spotify.configDb.getCollection(CONSTANTS.CONFIG);
+    var settings = configs.findOne( {name: CONSTANTS.SPOTIFY_CONFIG} )
+    var history = db.getCollection(CONSTANTS.HISTORY);
+    var skip = history.findOne({track: CONSTANTS.SKIP});
+    try {
+        let currentsong = await spotify.api.getMyCurrentPlayingTrack();
+        if (currentsong.statusCode == '204'){
+            return slack.reply("in_channel", ":information_source: Spotify is currently not playing.");
+        }
+        else{
+            // Store Skip Info Somewhere
+            if (skip == null){
+                var skipinfo = {
+                    track: CONSTANTS.SKIP,
+                }
+                history.insert(skipinfo);
+                skip = history.findOne({track: CONSTANTS.SKIP});
+            }
+            if (skip.uri == currentsong.body.item.uri){
+                return slack.reply("ephemeral", ":information_source: There is already a vote to skip this song.");
+            }
+            skip.users = [slack_user];
+            skip.uri = currentsong.body.item.uri;
+            skip.name = currentsong.body.item.name;
+            skip.artist = currentsong.body.item.artists[0].name;
+            history.update(skip);
+            return slack.reply("in_channel", `:black_right_pointing_double_triangle_with_vertical_bar: <@${slack_user}> has requested to skip ${currentsong.body.item.artists[0].name} - ${currentsong.body.item.name}. `, 
+            [skip_attachment([slack_user], parseInt(settings.votes_skip)-1, currentsong.body.item.uri)]);
+        }
+    } catch (error) {
+        console.log("Skip Failed", error);
+    }
+}
+
+async function voteSkip(slack_user, track_uri){
+    var configs = spotify.configDb.getCollection(CONSTANTS.CONFIG);
+    var settings = configs.findOne( {name: CONSTANTS.SPOTIFY_CONFIG} )
+    var history = db.getCollection(CONSTANTS.HISTORY);
+    var auth = configs.findOne({name: CONSTANTS.AUTH});
+    var skip = history.findOne({track: CONSTANTS.SKIP});
+    var params = {
+        channel: auth.channel_id,
+        user: slack_user.id
+    }
+    let result = await spotify.api.getMyCurrentPlayingTrack();
+    if (skip.uri != track_uri || result.body.item.uri != skip.uri){
+        return slack.reply("in_channel", "This vote has expired.");
+    }
+    if (skip.users.includes(slack_user.id)){
+        params.text = "You have already voted on this. ";
+        slack.postEphemeral(params);
+        return slack.reply("in_channel", "");
+    }
+    else{
+        skip.users.push(slack_user.id);
+        if (settings.votes_skip==skip.users.length){
+            var users = "";
+            for (let user of skip.users){
+                users += `<@${user}> `;
+                console.log(users);
+            }
+            spotify.api.skipToNext();
+            return slack.deleteReply("in_channel", `:black_right_pointing_double_triangle_with_vertical_bar: ${skip.artist} - ${skip.name} was skipped by: ${users}`);
+        }
+        return slack.deleteReply("in_channel", `:black_right_pointing_double_triangle_with_vertical_bar: <@${skip.users[0]}> has requested to skip ${skip.artist} - ${skip.name}.`,
+         [skip_attachment(skip.users, settings.votes_skip-skip.users.length, track_uri)]);
+
+    }
+}
+
 function setNowPlaying(){
     var configs = spotify.configDb.getCollection(CONSTANTS.CONFIG);
     var settings = configs.findOne({name : CONSTANTS.SPOTIFY_CONFIG});
@@ -304,5 +442,8 @@ module.exports = {
     pause,
     find,
     getThreeTracks,
-    addSongToPlaylist
+    addSongToPlaylist,
+    whom,
+    skip,
+    voteSkip
 };
