@@ -234,7 +234,6 @@ async function settings(trigger_id){
     console.log("TEST2");
     console.log(settings);
     var playlist = "";
-    var disable_repeats = "";
     var disable_repeats_duration = "";
     var votes_skip = "";
     var back_to_playlist = "";
@@ -242,9 +241,6 @@ async function settings(trigger_id){
     if (settings != null){
         if (settings.playlist){
             playlist = settings.playlist;
-        }
-        if (settings.disable_repeats){
-            disable_repeats = settings.disable_repeats;
         }
         if (settings.disable_repeats_duration){
             disable_repeats_duration = settings.disable_repeats_duration;
@@ -275,31 +271,13 @@ async function settings(trigger_id){
             "hint": "The name of the playlist Spotbot will save to. If it does not exist Spotbot will create one for you."
           },
           {
-            "type": "select",
-            "label": "Disable repeats",
-            "name": "disable_repeats",
-            "value": `${disable_repeats}`,
-            "hint" : "Disable the addition of the same song",
-            "options": [
-              {
-                "label": "Yes",
-                "value": "yes"
-              },
-              {
-                "label": "No",
-                "value": "no"
-              }
-            ]
-          },
-          {
             "type": "text",
             "label": "Disable repeats duration (hours)",
             "name": "disable_repeats_duration",
             "placeholder" : "3",
             "subtype" : "number",
             "value" : `${disable_repeats_duration}`,
-            "optional" : "true",
-            "hint": "The duration where no one can add the same song. Set it to 0 to disable repeats in the whole playlist. Integers only"
+            "hint": "The duration where no one can add the same song. Set it to 0 to allow repeats whenever. Integers only"
           },
           {
             "type": "select",
@@ -377,8 +355,7 @@ async function verify(submission){
     var auth = configs.findOne( {name: CONSTANTS.AUTH });
     //Validate submissions
     var errors = [];
-    if ((submission.disable_repeats && submission.disable_repeats == ('no') && submission.disable_repeats_duration && !isPositiveInteger(submission.disable_repeats_duration))
-    || (submission.disable_repeats && submission.disable_repeats == ('yes') && (!submission.disable_repeats_duration || !isPositiveInteger(submission.disable_repeats_duration)))){
+    if (!isPositiveInteger(submission.disable_repeats_duration)){
         errors.push(
             {
                 "name": "disable_repeats_duration",
@@ -406,15 +383,10 @@ async function verify(submission){
             settings = configs.findOne( { name : CONSTANTS.SPOTIFY_CONFIG });
         }
         // Add to DB.
-        settings.disable_repeats = submission.disable_repeats;
         settings.votes_skip = submission.votes_skip;
         settings.back_to_playlist = submission.back_to_playlist;
         settings.now_playing = submission.now_playing;
-        if (submission.disable_repeats_duration && submission.disable_repeats == ('yes')) {
-            settings.disable_repeats_duration = submission.disable_repeats_duration;
-        } else {
-            settings.disable_repeats_duration = "";
-        }
+        settings.disable_repeats_duration = submission.disable_repeats_duration;
         if (settings.playlist != submission.playlist) {
             //TODO Update Playlist on Spotify
             try {
