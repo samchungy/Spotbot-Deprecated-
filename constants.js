@@ -23,5 +23,6 @@ module.exports = {
     SEE_MORE_TRACKS : "SEEMORETRACKS",
     ADD_SONG : "ADDSONG",
     CRONJOB1 : "CRONJOB1",
-    CRONJOB2 : "CRONJOB2"
+    CRONJOB2 : "CRONJOB2",
+    SKIP: "skip"
 }
