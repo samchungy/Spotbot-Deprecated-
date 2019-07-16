@@ -65,15 +65,21 @@ async function sendDialog(params){
 }
 
 async function post(params){
+    params.token = process.env.SLACK_TOKEN;
     return axios.post(`https://slack.com/api/chat.postMessage`, qs.stringify(params));
 }
 
+async function postEphemeral(params){
+    params.token = process.env.SLACK_TOKEN;
+    return axios.post(`https://slack.com/api/chat.postEphemeral`, qs.stringify(params));
+}
 
 module.exports = {
     send,
     reply,
     deleteReply,
     post,
+    postEphemeral,
     spotifyToSlackAttachment,
     sendDialog
 };
