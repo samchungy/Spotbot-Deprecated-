@@ -35,6 +35,10 @@ app.post('/slack/actions', async (req, res) =>{
       res.send(slack.deleteReply("ephemeral", ""));
       slack.post(response);
     }
+    else if (payload.actions[0].name == CONSTANTS.SKIP){
+      let response = await spotify.voteSkip(payload.user, payload.callback_id);
+      res.send(response);
+    }
   }
   else{
     if (payload.callback_id == CONSTANTS.SPOTIFY_CONFIG){
@@ -116,6 +120,19 @@ else {
   slack.send(response, req.body.response_url);
 }
 });
+
+app.post('/whom', async (req, res) => {
+  res.send(slack.reply("in_channel", ""));
+  let response = await spotify.whom();
+  console.log(response);
+  slack.send(response, req.body.response_url);
+});
+
+app.post('/skip', async (req, res) => {
+  res.send(slack.reply("in_channel", ""));
+  let response = await spotify.skip(req.body.user_id);
+  slack.send(response, req.body.response_url);
+})
 
 
 app.listen(port, () => console.log(`App listening on port ${port}!`))
