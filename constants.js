@@ -7,7 +7,7 @@ module.exports = {
     ADMIN: "admin",
     NAME: "name",
     SETTINGS : "settings",
-    TRACK : "track",
+    SEARCH : "search",
     HISTORY: "history",
     PLAYLIST: "playlist",
     TRIGGER_ID : 'trigger_id',
@@ -24,5 +24,7 @@ module.exports = {
     ADD_SONG : "ADDSONG",
     CRONJOB1 : "CRONJOB1",
     CRONJOB2 : "CRONJOB2",
-    SKIP: "skip"
+    SKIP: "skip",
+    AFRICA: "spotify:track:2374M0fQpWi3dLnB54qaLX",
+    RESET: "reset"
 }

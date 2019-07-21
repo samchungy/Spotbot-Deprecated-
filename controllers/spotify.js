@@ -1,0 +1,78 @@
+// @ts-check
+//Load Spotify Node SDK
+const CONSTANTS = require('../constants');
+const SpotifyWebApi = require('spotify-web-api-node');
+
+// Setting credentials can be done in the wrapper's constructor, or using the API object's setters.
+var spotifyApi = new SpotifyWebApi({
+    redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET
+});
+
+const DEFAULT_DEVICE_ID = '6d2e33d004c05821b7be5da785dbc3a2c55eeca7';
+
+/**
+ * 
+ * @param {string} code Code obtained from Spotify Authorization flow
+ */
+async function authorizationCodeGrant(code){
+    try{
+        let tokens = await spotifyApi.authorizationCodeGrant(code);
+        console.log('The token expires in ' + tokens.body['expires_in']);
+        console.log('The access token is ' + tokens.body['access_token']);
+        console.log('The refresh token is ' + tokens.body['refresh_token']);
+        updateTokens(tokens.body['access_token'], tokens.body['refresh_token']);
+    }
+    catch(error){
+        console.log("Authorization Code Grant failed", error);
+    }
+}
+/**
+ * Create authorization URL for Spotify
+ * @param {string} trigger_id Slack trigger id
+ * @returns Authorization URL
+ */
+async function getAuthorizeURL(trigger_id){
+    console.log("getting auth url")
+    try {
+        let authorize_url = await spotifyApi.createAuthorizeURL(CONSTANTS.SCOPES, trigger_id);
+        return authorize_url;
+    } catch (error) {
+        console.log("Create Authorize URL failed", error);
+    }
+}
+
+function updateTokens(access_token, refresh_token){
+    if (access_token){
+        spotifyApi.setAccessToken(access_token);
+    }
+    if (refresh_token){
+        spotifyApi.setRefreshToken(refresh_token);
+    }
+}
+
+function getTokens(){
+    return { 
+        access: spotifyApi.getAccessToken(),
+        refresh: spotifyApi.getRefreshToken() 
+    };
+}
+
+async function renewAccessToken(){
+    try {
+        let access_token = await spotifyApi.refreshAccessToken();
+        spotifyApi.setAccessToken(access_token.body['access_token']);
+    } catch (error) {
+        console.log("Renewing Access Token failed", error);
+    }
+}
+
+module.exports = {
+    authorizationCodeGrant,
+    getTokens,
+    getAuthorizeURL,
+    renewAccessToken,
+    updateTokens,
+    spotifyApi
+}

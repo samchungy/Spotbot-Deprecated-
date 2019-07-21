@@ -74,11 +74,16 @@ async function postEphemeral(params){
     return axios.post(`https://slack.com/api/chat.postEphemeral`, qs.stringify(params));
 }
 
+async function postReply(body, response_url){
+    return axios.post(response_url, body);
+}
+
 module.exports = {
     send,
     reply,
     deleteReply,
     post,
+    postReply,
     postEphemeral,
     spotifyToSlackAttachment,
     sendDialog

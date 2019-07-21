@@ -5,12 +5,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 //Load Spotify local module
-const spotify = require('./spotifyController');
-const spotifySetup = require('./spotifyConfig');
+const spotify = require('./core/spotifyConfig');
+const spotifySetup = require('./core/spotifyConfig');
+const spotifyAuth = require('./core/spotifyAuth');
+const spotifyController = require('./controllers/spotifyController');
 const slack = require('./slackController');
 const port = process.env.PORT || 3000;
-// The current date
-const currentTime = new Date().toTimeString();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
@@ -26,23 +26,32 @@ app.post('/slack/actions', async (req, res) =>{
     // See more tracks button action
     if (payload.actions[0].name == CONSTANTS.SEE_MORE_TRACKS){
       res.send();
-      let response = spotify.getThreeTracks(payload.callback_id, payload.actions[0].value);
+      let response = spotifyController.getThreeTracks(payload.callback_id, payload.actions[0].value);
       slack.send(response, payload.response_url);
     }
     // Add a song track button
     else if (payload.actions[0].name == CONSTANTS.ADD_SONG){
-      let response = await spotify.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user, payload.channel.id);
+      let response = await spotifyController.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user, payload.channel.id);
       res.send(slack.deleteReply("ephemeral", ""));
       slack.post(response);
     }
     else if (payload.actions[0].name == CONSTANTS.SKIP){
-      let response = await spotify.voteSkip(payload.user, payload.callback_id);
+      let response = await spotifyController.voteSkip(payload.user, payload.callback_id);
       res.send(response);
+    }
+    else if (payload.actions[0].name == CONSTANTS.RESET){
+      let response = await spotifyController.reset();
+      res.send(response);
+      var params = {
+        channel: payload.channel.id
+      };
+      params.text = `:boom: The playlist has been nuked by <@${payload.user.id}>`
+      slack.post(params);
     }
   }
   else{
     if (payload.callback_id == CONSTANTS.SPOTIFY_CONFIG){
-      let response = await spotifySetup.verify(payload.submission);
+      let response = await spotifySetup.verifySettings(payload.submission);
       if (response.errors != null){
         res.send(response);
       }
@@ -62,12 +71,13 @@ app.post('/setup', async (req, res) => {
   console.log
   if (req.body.text == "setup"){
     res.send();
-    let response = spotifySetup.setup(req.body.user_id, req.body.trigger_id, req.body.response_url)
+    let response = await spotifySetup.setup(req.body.user_id, req.body.trigger_id, req.body.response_url)
     slack.send(response, req.body.response_url);
   }
   if (req.body.text == "auth"){
     res.send();
-    let response = spotifySetup.authenticate(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.body.team_id);
+    let response = await spotifyAuth.authenticate(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.body.team_id);
+    console.log(response);
     slack.send(response, req.body.response_url);
   }
   if (req.body.text == "settings"){
@@ -82,7 +92,7 @@ app.post('/setup', async (req, res) => {
 
 app.get('/auth', async (req, res) => {
   if (req.query.code != null) {
-    let response = await spotifySetup.getAccessToken(req.query.code, req.query.state);
+    let response = await spotifyAuth.getAccessToken(req.query.code, req.query.state);
     res.redirect(response);
   } else if (req.query.error != null) {
     console.log(req.query.error);
@@ -91,13 +101,13 @@ app.get('/auth', async (req, res) => {
 
 app.post('/play',  async (req, res) => {
   res.send(slack.reply("in_channel", ""));
-  let response = await spotify.play();
+  let response = await spotifyController.play();
   slack.send(response, req.body.response_url);
 });
 
 app.post('/pause', async (req, res) => {
   res.send(slack.reply("in_channel", ""));
-  let response = await spotify.pause();
+  let response = await spotifyController.pause();
   slack.send(response, req.body.response_url);
 
 });
@@ -116,21 +126,27 @@ app.post('/find', async (req, res) => {
 else {
   res.send(slack.reply("in_channel", ""));
   // "text": "<@UK70DC5LG>",
-  let response = await spotify.find(req.body.text, req.body.trigger_id);
+  let response = await spotifyController.find(req.body.text, req.body.trigger_id);
   slack.send(response, req.body.response_url);
 }
 });
 
 app.post('/whom', async (req, res) => {
   res.send(slack.reply("in_channel", ""));
-  let response = await spotify.whom();
+  let response = await spotifyController.whom();
   console.log(response);
   slack.send(response, req.body.response_url);
 });
 
 app.post('/skip', async (req, res) => {
   res.send(slack.reply("in_channel", ""));
-  let response = await spotify.skip(req.body.user_id);
+  let response = await spotifyController.skip(req.body.user_id);
+  slack.send(response, req.body.response_url);
+});
+
+app.post('/reset', async (req, res) => {
+  res.send();
+  let response = await spotifyController.resetRequest();
   slack.send(response, req.body.response_url);
 })
 
