@@ -2,6 +2,7 @@
 //Load Spotify Node SDK
 const CONSTANTS = require('../constants');
 const SpotifyWebApi = require('spotify-web-api-node');
+const logger = require('../log/winston');
 
 // Setting credentials can be done in the wrapper's constructor, or using the API object's setters.
 var spotifyApi = new SpotifyWebApi({
@@ -25,7 +26,8 @@ async function authorizationCodeGrant(code){
         updateTokens(tokens.body['access_token'], tokens.body['refresh_token']);
     }
     catch(error){
-        console.log("Authorization Code Grant failed", error);
+        logger.error(`Auth Code Grant failed ${error}`);
+        throw Error(error);
     }
 }
 /**
@@ -34,12 +36,12 @@ async function authorizationCodeGrant(code){
  * @returns Authorization URL
  */
 async function getAuthorizeURL(trigger_id){
-    console.log("getting auth url")
     try {
         let authorize_url = await spotifyApi.createAuthorizeURL(CONSTANTS.SCOPES, trigger_id);
         return authorize_url;
     } catch (error) {
-        console.log("Create Authorize URL failed", error);
+        logger.error(`Get AUTH url failed ${error}`);
+        throw Error(error);
     }
 }
 
@@ -64,7 +66,8 @@ async function renewAccessToken(){
         let access_token = await spotifyApi.refreshAccessToken();
         spotifyApi.setAccessToken(access_token.body['access_token']);
     } catch (error) {
-        console.log("Renewing Access Token failed", error);
+        logger.error(`Remnewing Access Token Failed ${error}`);
+        throw Error(error);
     }
 }
 

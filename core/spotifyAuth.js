@@ -2,15 +2,17 @@ const CONSTANTS = require('../constants');
 const spotify = require ('../controllers/spotify');
 //Cron module for scheduling refresh
 const schedule = require('node-schedule');
-const slack = require('../slackController');
+const slack = require('../controllers/slackController');
 const moment = require('moment');
 const config = require('../db/config');
+const logger = require('../log/winston');
+
 /**
  * Initialise/load the persistant lokijs database, start up CRON jobs.
  */
 function initialise() {
     if (isAuthExpired()) {
-        console.log("Need to get a new access token");
+        logger.info("Need to get a new authentication token from Spotify");
         return;
     }
     // Re-configure the Spotify Api
@@ -27,29 +29,23 @@ function initialise() {
  * @param {string} trigger_id 
  * @param {string} response_url 
  */
-async function authenticate(trigger_id, response_url, channel_id, team_id){
-    var thirty = moment().add(30, 'm');
-    var auth = config.getAuth();
-    // If previously exists:
-    if (auth == null){
-        config.setAuth();
-        auth = config.getAuth();
+async function authenticate(trigger_id, response_url, channel_id){
+    try {
+        var thirty = moment().add(30, 'm');
+        var auth = config.getAuth();
+        // If previously exists:
+        if (auth == null){
+            config.setAuth();
+            auth = config.getAuth();
+        }
+        config.setAuth(trigger_id, thirty, response_url, channel_id);
+        // Create the authorization URL
+        let authorizeURL = await spotify.getAuthorizeURL(trigger_id);
+        return authorizeURL;
+    } catch (error) {
+        logger.error(`Authentication failed ${error}`);
     }
-    config.setAuth(trigger_id, thirty, response_url, channel_id, team_id);
-    // Create the authorization URL
-    let authorizeURL = await spotify.getAuthorizeURL(trigger_id);
-    console.log(authorizeURL);
-    return slack.reply("ephemeral", "Please visit the following link to authenticate your Spotify account. You have 30 minutes to authenticate.", [{
-        fallback: "Please visit the following link to authenticate your Spotify account: " + authorizeURL,
-        actions: [
-            {
-                "type": "button",
-                "style": "primary",
-                "text": ":link: Authenticate with Spotify",
-                "url": authorizeURL
-            }
-        ]
-    }]);
+
 }
 
 /**
@@ -60,12 +56,12 @@ async function getAccessToken(code, state) {
     try {
         var auth = config.getAuth();
         if (auth.trigger_id != state){
-            slack.send(slack.reply("ephemeral",":no_entry: Invalid State, Please re-authenticate again", null), auth.response_url);   
+            slack.sendEphemeralReply(":no_entry: Invalid State, Please re-authenticate again", null, auth.response_url);
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
 
         }
         else if (moment().isAfter(moment(auth.trigger_expires))){
-            slack.send(slack.reply("ephemeral",":no_entry: Your authentication window has expired. Please re-authenticate again", null), auth.response_url);   
+            slack.sendEphemeralReply(":no_entry: Your authentication window has expired. Please try again", null, auth.response_url);
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
         else{
@@ -83,7 +79,7 @@ async function getAccessToken(code, state) {
             if (settings == null){
                 text += " Run `/spotbot settings` to setup Spotify. "
             }
-            slack.send(slack.reply("ephemeral", text), auth.response_url);
+            slack.sendEphemeralReply(text, null, auth.response_url);
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
     } catch (error) {
@@ -110,8 +106,9 @@ function isAuthExpired(){
  * Sets a CRON to update the access token.
  */
 function setRefreshTokenCronJob() {
-    schedule.scheduleJob(CONSTANTS.CRONJOB1, '* */30 * * *', () => {
-        console.log('Refreshing Token');
+    logger.info("Cronjob Set");
+    schedule.scheduleJob(CONSTANTS.CRONJOB1, '*/30 * * * *', () => {
+        logger.info("Token refreshed");
         refreshToken();
     });
 }
