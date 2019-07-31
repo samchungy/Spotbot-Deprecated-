@@ -4,19 +4,19 @@ const {db} = init;
 
 /**
  * Set an admin for Slackbot
- * @param {string} user_id Slack User id
+ * @param {string} user_name Slack User id
  */
-function setAdmin(user_id){
+function setAdmin(user_name){
     var admins = find(CONSTANTS.ADMIN);
     if (admins == null){
         create(CONSTANTS.ADMIN);
         return; //Intiailisation of admin.
     }
     if (admins.users == null){
-        admins.users = [user_id];
+        admins.users = [user_name];
     }
     else{
-        admins.users.push(user_id);
+        admins.users.push(user_name);
     }
     update(admins);
 }
@@ -29,7 +29,7 @@ function setAdmin(user_id){
  * @param {string} channel_id Slack channel ID
  * @param {string} team_id Slack team id
  */
-function setAuth(trigger_id, trigger_expires, response_url, channel_id, team_id){
+function setAuth(trigger_id, trigger_expires, response_url, channel_id){
     var auth = find(CONSTANTS.AUTH);
     if (auth == null){
         create(CONSTANTS.AUTH);
@@ -39,7 +39,6 @@ function setAuth(trigger_id, trigger_expires, response_url, channel_id, team_id)
     auth.trigger_expires = trigger_expires;
     auth.response_url = response_url;
     auth.channel_id = channel_id;
-    auth.team_id = team_id;
     update(auth);
 }
 

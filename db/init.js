@@ -18,7 +18,6 @@ function initialiseConfig() {
     // If collection is empty do not load it, instead - create a new file
     if (configs === null || configs.count() == 0) {
         db.addCollection(CONSTANTS.CONFIG);
-        console.log(db);
         return;
     }
     let {initialise} = require('../core/spotifyAuth');
