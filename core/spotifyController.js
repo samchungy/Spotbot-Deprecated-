@@ -38,10 +38,6 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
         var back_to_playlist = spotify_config.getBackToPlaylist();
         var channel_id = spotify_config.getChannel();
         var track_id = track_uri.match(/[^:]+$/)[0];
-        var params = {
-            channel: channel_id
-        };
-        
         let track = await spotify_player.getTrack(track_id);
         var name = _.get(track, 'body.name');
         var artist = _.get(track, 'body.artists[0].name');
@@ -54,8 +50,8 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
             // Update history record with new user
             if (disable_repeats_duration){
                 if (await isRepeat(disable_repeats_duration, history.time)){
-                    params.text = `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(history.time)).humanize()} ago.`;
-                    await slack.post(params);
+                    let text = `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(history.time)).humanize()} ago.`;
+                    await slack.post(channel_id, text);
                     return
                 }
             }
@@ -67,12 +63,13 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
             tracks.updateHistory(history);
         }
         // Free up memory, remove search from tracks.
-        params.text = `:tada: ${artist} - ${name} was added to the playlist.`
+        let text = `:tada: ${artist} - ${name} was added to the playlist.`
         let current_track = await spotify_player.getPlayingTrack();
         // Get the song back on playlist
         if (back_to_playlist == "yes" && current_track.statusCode != 204 && !onPlaylist(current_track.body.context)){
             let array = [current_track.body.item.uri, track_uri];
             await setBackToPlaylist(playlist_id, array, current_track);
+            text += " Spotify will return to the playlist after this song."
         } else{
             await spotifyApi.addTracksToPlaylist(playlist_id, [track_uri]);
         }
@@ -81,7 +78,7 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
         if (history != null) {
             tracks.deleteSearch(history);
         }
-        await slack.post(params);
+        await slack.post(channel_id, text);
         return;
     } catch (error) {
         logger.error(`Add Song to Playlist failed ${error}`);
@@ -106,7 +103,7 @@ async function setBackToPlaylist(playlist_id, tracks, current_track){
                 return track.track.uri == tracks[0]
             });
             if (index != -1){
-                await spotify_player.playWithContext(playlist_id, offset*100+index, current_track.body.progress_ms);
+                await spotify_player.playWithContext(playlist_id, offset*100+index, current_track.body.progress_ms+1000);
                 if (current_track.body.is_playing == false){
                     await spotify_player.pause();
                 }
