@@ -5,22 +5,26 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 //Load Spotify local module
-const spotify = require('./core/spotifyConfig');
 const spotifySetup = require('./core/spotifyConfig');
 const spotifyAuth = require('./core/spotifyAuth');
 const spotifyController = require('./core/spotifyController');
 const slack = require('./controllers/slackController');
 const port = process.env.PORT || 3000;
 const logger = require('./log/winston');
+const moment = require('moment');
+const qs = require('querystring');
+const slackAuth = require('./core/slackAuth');
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
 }));
+app.use(bodyParser.raw());
 
 /**
  * Slack button actions all flow here
  */
-app.post('/slack/actions', async (req, res) =>{
+app.post('/slack/actions', slackAuth, async (req, res) =>{
   var payload = JSON.parse(req.body.payload);
   if (payload.actions != null && payload.actions.length > 0){
     // See more tracks button action
@@ -59,7 +63,7 @@ app.post('/slack/actions', async (req, res) =>{
   }
 });
 
-app.post('/setup', async (req, res) => {
+app.post('/setup', slackAuth, async (req, res) => {
   if (req.body.text == "setup"){
     logger.info("Setup Slash Command Used");
     res.send();
@@ -77,7 +81,6 @@ app.post('/setup', async (req, res) => {
     await spotifySetup.settings(req.body.trigger_id);
   }
   else {
-    console.log(req.body)
     let array = req.body.text.split(" ");
     if (array){
       if (array[0] == "admin"){
@@ -112,19 +115,19 @@ app.get('/auth', async (req, res) => {
   }
 });
 
-app.post('/play',  async (req, res) => {
+app.post('/play', slackAuth,  async (req, res) => {
   logger.info("Play Triggered");
   res.send(slack.ack());
   await spotifyController.play(req.body.response_url);
 });
 
-app.post('/pause', async (req, res) => {
+app.post('/pause', slackAuth, async (req, res) => {
   logger.info("Pause Triggered");
   res.send(slack.ack());
   await spotifyController.pause(req.body.response_url);
 });
 
-app.post('/find', async (req, res) => {
+app.post('/find', slackAuth, async (req, res) => {
   logger.info("Find Triggered");
   if (req.body.text == ""){
     res.send({
@@ -138,19 +141,19 @@ else {
 
 });
 
-app.post('/whom', async (req, res) => {
+app.post('/whom', slackAuth, async (req, res) => {
   logger.info("Whom Triggered");
   res.send(slack.ack());
   await spotifyController.whom(req.body.response_url);
 });
 
-app.post('/skip', async (req, res) => {
+app.post('/skip', slackAuth, async (req, res) => {
   logger.info("Skip triggered");
   res.send(slack.ack());
   await spotifyController.skip(req.body.user_id, req.body.response_url);
 });
 
-app.post('/reset', async (req, res) => {
+app.post('/reset', slackAuth, async (req, res) => {
   logger.info("Reset triggered");
   res.send(slack.ack());
   await spotifyController.resetRequest(req.body.response_url);
