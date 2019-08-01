@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const qs = require('qs');
 const moment = require('moment');
+const config = require('../db/config');
+const slack = require('../controllers/slackController');
 // fetch this from environment variables
 const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
 
@@ -29,4 +31,18 @@ function signVerification (req, res, next) {
    }
 }
 
-module.exports = signVerification;
+function isAdmin(req, res, next){
+    var admins = config.getAdmins();
+    if (admins == null || admins.users.length == 0 || admins.users.includes(req.body.user_name)){
+        next();
+    }
+    else{
+        slack.sendEphemeralReply("You are not permitted to run this command.", null, req.body.response_url);
+        res.send();
+    }
+}
+
+module.exports = {
+    isAdmin,
+    signVerification
+}

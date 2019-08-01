@@ -56,12 +56,12 @@ async function getAccessToken(code, state) {
     try {
         var auth = config.getAuth();
         if (auth.trigger_id != state){
-            slack.sendEphemeralReply(":no_entry: Invalid State, Please re-authenticate again", null, auth.response_url);
+            await slack.sendEphemeralReply(":no_entry: Invalid State, Please re-authenticate again", null, auth.response_url);
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
 
         }
         else if (moment().isAfter(moment(auth.trigger_expires))){
-            slack.sendEphemeralReply(":no_entry: Your authentication window has expired. Please try again", null, auth.response_url);
+            await slack.sendEphemeralReply(":no_entry: Your authentication window has expired. Please try again", null, auth.response_url);
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
         else{
@@ -79,7 +79,7 @@ async function getAccessToken(code, state) {
             if (settings == null){
                 text += " Run `/spotbot settings` to setup Spotify. "
             }
-            slack.sendEphemeralReply(text, null, auth.response_url);
+            await slack.sendEphemeralReply(text, null, auth.response_url);
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
     } catch (error) {
@@ -93,10 +93,37 @@ async function getAccessToken(code, state) {
  */
 function isAuthExpired(){
     var auth = config.getAuth();
-    if (auth != null && moment().isAfter(auth.expires)){
+    if (auth == null || moment().isAfter(auth.expires)){
             return true;
         }
     return false;
+}
+
+async function isAuthed(req, res, next){
+    try {
+        if (isAuthExpired()){
+            await slack.sendReply("Your Spotify Auth has expired. Please re-run `/spotbot auth` to re-aunthenticate", null, req.body.response_url);
+            res.send();
+        } else {
+            next();
+        }
+    } catch (error) {
+        logger.error(`IsAuthed failed ${error}`);
+    }
+
+}
+
+function isAuthed2(response_url){
+    try {
+        if (isAuthExpired()){
+            slack.sendReply("Please run `/spotbot auth` to aunthenticate", null, response_url);
+            return false;
+        } else {
+            return true;
+        }
+    } catch (error) {
+        logger.error(`IsAuthed2 failed ${error}`);
+    }
 }
 
 // ------------------------
@@ -108,8 +135,13 @@ function isAuthExpired(){
 function setRefreshTokenCronJob() {
     logger.info("Cronjob Set");
     schedule.scheduleJob(CONSTANTS.CRONJOB1, '*/30 * * * *', () => {
-        logger.info("Token refreshed");
-        refreshToken();
+        try {
+            logger.info("Token refreshed");
+            refreshToken();
+        } catch (error) {
+            logger.error(`Refresh Token Cron Job Failed ${error}`);
+        }
+
     });
 }
 
@@ -117,8 +149,13 @@ function setRefreshTokenCronJob() {
  * Calls the Spotify API to refresh the Access Token, updates Access Token.
  */
 async function refreshToken() {
-    await spotify.renewAccessToken();
-    updateAccess();
+    try {
+        await spotify.renewAccessToken();
+        updateAccess();
+    } catch (error) {
+        logger.error(`Refreshing token failed ${error}`);
+    }
+
 }
 
 /**
@@ -137,5 +174,7 @@ module.exports = {
     authenticate,
     getAccessToken,
     initialise,
-    isAuthExpired
+    isAuthExpired,
+    isAuthed,
+    isAuthed2
 }

@@ -10,7 +10,7 @@ function setAdmin(user_name){
     var admins = find(CONSTANTS.ADMIN);
     if (admins == null){
         create(CONSTANTS.ADMIN);
-        return; //Intiailisation of admin.
+        var admins = find(CONSTANTS.ADMIN);
     }
     if (admins.users == null){
         admins.users = [user_name];

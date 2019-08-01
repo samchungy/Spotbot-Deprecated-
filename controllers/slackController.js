@@ -135,7 +135,7 @@ async function postEphemeral(channel_id, user, text){
 
 async function postReply(body, response_url){
     try {
-        return axios.post(response_url, body);
+        return await axios.post(response_url, body);
     } catch (error) {
         logger.error(`Slack post reply failed ${error}`);
     }

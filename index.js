@@ -24,7 +24,7 @@ app.use(bodyParser.raw());
 /**
  * Slack button actions all flow here
  */
-app.post('/slack/actions', slackAuth, async (req, res) =>{
+app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, async (req, res) =>{
   var payload = JSON.parse(req.body.payload);
   if (payload.actions != null && payload.actions.length > 0){
     // See more tracks button action
@@ -63,43 +63,51 @@ app.post('/slack/actions', slackAuth, async (req, res) =>{
   }
 });
 
-app.post('/setup', slackAuth, async (req, res) => {
+app.post('/setup', slackAuth.signVerification, slackAuth.isAdmin, async (req, res) => {
   if (req.body.text == "setup"){
     logger.info("Setup Slash Command Used");
     res.send();
     await spotifySetup.setup(req.body.user_name, req.body.trigger_id, req.body.response_url)
   }
-  else if (req.body.text == "auth"){
-    logger.info("Auth Slash Command Used");
-    res.send();
-    await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id);
-
-  }
-  else if (req.body.text == "settings"){
-    logger.info("Settings Slash Command Used");
-    res.send();
-    await spotifySetup.settings(req.body.trigger_id);
-  }
-  else {
-    let array = req.body.text.split(" ");
-    if (array){
-      if (array[0] == "admin"){
-        logger.info("Admin Slash Command Used");
-        if (array[1]){
-          if (array[1] == "add"){
-            res.send();
-            spotifySetup.addAdmin(array[2], req.body.response_url);
-          }
-          else if(array[1] == "remove"){
-            res.send();
-            spotifySetup.removeAdmin(array[2], req.body.user_name, req.body.response_url);
-          }
-          else if(array[1] == "list"){
-            res.send();
-            spotifySetup.getAdmins(req.body.response_url);
+  else{
+    if (spotifySetup.isSetup(req.body.response_url)){
+      if (req.body.text == "auth"){
+        logger.info("Auth Slash Command Used");
+        res.send();
+        await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id);
+    
+      }
+      else if (req.body.text == "settings"){
+        res.send();
+        if (spotifyAuth.isAuthed2(req.body.response_url)){
+          logger.info("Settings Slash Command Used");
+          await spotifySetup.settings(req.body.trigger_id);
+        }
+      }
+      else {
+        let array = req.body.text.split(" ");
+        if (array){
+          if (array[0] == "admin"){
+            logger.info("Admin Slash Command Used");
+            if (array[1]){
+              if (array[1] == "add"){
+                res.send();
+                spotifySetup.addAdmin(array[2], req.body.response_url);
+              }
+              else if(array[1] == "remove"){
+                res.send();
+                spotifySetup.removeAdmin(array[2], req.body.user_name, req.body.response_url);
+              }
+              else if(array[1] == "list"){
+                res.send();
+                spotifySetup.getAdmins(req.body.response_url);
+              }
+            }
           }
         }
       }
+    } else {
+      res.send();
     }
   }
 });
@@ -115,19 +123,19 @@ app.get('/auth', async (req, res) => {
   }
 });
 
-app.post('/play', slackAuth,  async (req, res) => {
+app.post('/play', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet,  async (req, res) => {
   logger.info("Play Triggered");
   res.send(slack.ack());
   await spotifyController.play(req.body.response_url);
 });
 
-app.post('/pause', slackAuth, async (req, res) => {
+app.post('/pause', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
   logger.info("Pause Triggered");
   res.send(slack.ack());
   await spotifyController.pause(req.body.response_url);
 });
 
-app.post('/find', slackAuth, async (req, res) => {
+app.post('/find', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
   logger.info("Find Triggered");
   if (req.body.text == ""){
     res.send({
@@ -141,19 +149,19 @@ else {
 
 });
 
-app.post('/whom', slackAuth, async (req, res) => {
+app.post('/whom', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
   logger.info("Whom Triggered");
   res.send(slack.ack());
   await spotifyController.whom(req.body.response_url);
 });
 
-app.post('/skip', slackAuth, async (req, res) => {
+app.post('/skip', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
   logger.info("Skip triggered");
   res.send(slack.ack());
   await spotifyController.skip(req.body.user_id, req.body.response_url);
 });
 
-app.post('/reset', slackAuth, async (req, res) => {
+app.post('/reset', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
   logger.info("Reset triggered");
   res.send(slack.ack());
   await spotifyController.resetRequest(req.body.response_url);

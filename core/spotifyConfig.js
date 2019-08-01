@@ -275,6 +275,35 @@ function isPositiveInteger(n) {
     return n >>> 0 === parseFloat(n);
 }
 
+async function isSetup(response_url){
+    try {
+        var admins = config.getAdmins();
+        if (admins == null){
+            await slack.sendEphemeralReply("Please run `/spotbot setup`.", null, response_url);
+            return false;
+        }
+        else{
+            return true;
+        }
+    } catch (error) {
+        logger.error(`isSetup failed ${error}`);
+    }
+}
+
+async function isSettingsSet(req, res, next){
+    try {
+        if (config.getSpotifyConfig() == null){
+            await slack.sendReply("Please run `/spotbot settings` to set up Spotbot", null, req.body.response_url);
+            res.send();
+        }
+        else{
+            next();
+        }
+    } catch (error) {
+        logger.error(`IsAuthed failed ${error}`);
+    }
+}
+
 function getAdmins(response_url){
     var admins = config.getAdmins();
     var admin_string = "";
@@ -311,6 +340,8 @@ function getChannel(){
 
 module.exports = {
     addAdmin,
+    isSetup,
+    isSettingsSet,
     getAdmins,
     getBackToPlaylist,
     getChannel,
