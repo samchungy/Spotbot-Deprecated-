@@ -112,54 +112,6 @@ async function setBackToPlaylist(playlist_id, tracks, current_track){
     }
 }
 
-async function isRepeatInPlaylist(track_uri){
-    try {
-        logger.info("Find track in playlist started.")
-        var playlist_id = spotify_config.getPlaylistId();
-        var disable_repeats_duration = spotify_config.getDisableRepeatsDuration();
-        var history = tracks.getHistory(track_uri);
-        let playlist = await spotify_player.getPlaylist(playlist_id);
-    
-        //Spotify only allows a maximum of 100 tracks to return per playlist so we need to amke multiple calls.
-        if (_.get(playlist, 'body.tracks.total')){
-            var num_of_searches = Math.ceil(_.get(playlist, 'body.tracks.total')/100);
-            var promise_list = [];
-            // Spotify API only allows a maximum of 100 tracks, SO: we need to make multiple calls to search the playlist.
-            for (let offset = 0; offset < num_of_searches; offset++){
-                // Add a search to a promise list so we can run this all simultaneously
-                promise_list.push(new Promise(async (resolve, reject) => {
-                    try {
-                        let playlist_tracks = await spotify_player.getPlaylistTracks(playlist_id, offset);
-                        let track_list = _.get(playlist_tracks, 'body.items');
-                        let index = _.findLastIndex(track_list, track => {
-                            return track.track.uri == track_uri && isRepeat(disable_repeats_duration, history.time)
-                        });
-                        // Due to promise.all short circuiting on fails, we will pass the success field through the failiure field.
-                        if (index == -1){
-                            resolve(null);
-                        } else {
-                            logger.info(`Track found in playlist at index ${offset*100+index}`);
-                            reject(track_list[index]);
-                        }
-                    } catch (error) {
-                        logger.error(`Finding track in Playlist failed. ${error}`);
-                    }
-                }));
-            }
-            //This one is weird! Success is caught in errors
-            try {
-                await Promise.all(promise_list);
-                return false;
-            } catch (error) {
-                return true;
-            }
-        }
-    } catch (error) {
-        logger.error(`Spotify failed to find track in playlist ${error}`);
-    }
-    return false;
-}
-
 /**
  * Hits play on Spotify
  */
@@ -300,6 +252,76 @@ async function find(query, trigger_id, response_url) {
     }
     await slack.sendEphemeralReply(`:slightly_frowning_face: Finding tracks failed.`, response_url);
     return;
+}
+
+async function findArtist(query, trigger_id, response_url) {
+    try {
+        logger.info(`Find artists for query "${query}" triggered.`);
+        let search_results = await spotify_player.getArtists(query);
+        let search_artists = _.get(search_results, 'body.artists.items');
+        if (search_artists.length == 0) {
+            //No Artists found
+            await slack.sendEphemeralReply(`:slightly_frowning_face: No artists found for the search term "${query}". Try another search?`, response_url);
+            return;
+        } else {
+            // Store in our db
+            tracks.setArtistSearch(trigger_id, search_artists, Math.ceil(search_artists.length / 3));
+            await getThreeArtists(trigger_id, 1, response_url);
+            return;
+        }
+    } catch (error) {
+        logger.error(`Find artist failed ${error}`);
+    }
+}
+
+async function getThreeArtists(trigger_id, pagenum, response_url) {
+    try {
+        var search = tracks.getSearch(trigger_id);
+        // Searches expire after X time.
+        if (search == null) {
+            await slack.sendEphemeralReply(`:slightly_frowning_face: I'm sorry, your search expired. Please try another one.`, null, response_url);
+            return;
+        }
+        // Our search has hit the end, remove it.
+        if (_.get(search, 'artists.length') == 0) {
+            tracks.deleteSearch(search);
+            await slack.sendEphemeralReply(`:information_source: No more artists. Try another search.`, null, response_url);
+            return;
+        }
+        // Make sure it is an int.
+        pagenum = parseInt(pagenum);
+
+        // Get 3 tracks of the search
+        var current_artists = search.artists.splice(0, 3);
+        var slack_attachments = []
+        for (let artist of current_artists) {
+            slack_attachments.push(slack.artistToSlackAttachment(artist, trigger_id));
+        }
+        // Update DB
+        tracks.updateSearch(search);
+
+        slack_attachments.push(slack.slackAttachment(`Page: ${pagenum}/${search.total_pages}`, trigger_id,
+            "See more artists", "See more artists", CONSTANTS.SEE_MORE_ARTISTS, pagenum+1));
+        await slack.sendEphemeralReply(`:mag: Are these the tracks you were looking for?`, slack_attachments, response_url);
+        return;
+    } catch (error) {
+        logger.error(`Failed to get 3 more artists ${error}`);
+    }
+    await slack.sendEphemeralReply(`Spotify failed to get 3 more artists`, null, response_url);
+    return;
+}
+
+async function artistToFindTrack(trigger_id, query, response_url){
+    try {
+        var search = tracks.getSearch(trigger_id);
+        if (search != null){
+            tracks.deleteSearch(search);
+        }
+        await find(query, trigger_id, response_url);
+    } catch (error) {
+        logger.error(`Artist to find track failed ${error}`);
+    }
+
 }
 
 async function whom(response_url) {
@@ -466,33 +488,46 @@ async function resetRequest(response_url){
 }
 
 async function currentTrack(response_url){
-    let current_track = await spotify_player.getPlayingTrack();
-    if (current_track.statusCode == 204){
-        slack.sendReply(":information_source: Spotify is currently not playing", null, response_url);
-        return;
+    try {
+        let current_track = await spotify_player.getPlayingTrack();
+        if (current_track.statusCode == 204){
+            await slack.sendReply(":information_source: Spotify is currently not playing", null, response_url);
+            return;
+        }
+        if (spotify_config.onPlaylist(current_track.body.context)){
+            await slack.sendReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`, null, response_url);
+            return;
+        } else {
+            await slack.sendReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
+            return;
+        }
+    } catch (error) {
+        logger.error(`Get current track failed ${error}`);
     }
-    if (spotify_config.onPlaylist(current_track.body.context)){
-        slack.sendReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`, null, response_url);
-        return;
-    } else {
-        slack.sendReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
-        return;
-    }
+
 }
 
 async function currentPlaylist(response_url){
-    var current_playlist = spotify_config.getPlaylistName();
-    var playlist_link = spotify_config.getPlaylistLink();
-    slack.sendReply(`:notes: Currently playing from Spotify playlist: <${playlist_link}|${current_playlist}>`, null, response_url); 
-    return;
+    try {
+        var current_playlist = spotify_config.getPlaylistName();
+        var playlist_link = spotify_config.getPlaylistLink();
+        await slack.sendReply(`:notes: Currently playing from Spotify playlist: <${playlist_link}|${current_playlist}>`, null, response_url); 
+        return;
+    } catch (error) {
+        logger.error(`Get current playlist failed ${error}`);
+    }
+
 }
 
 module.exports = {
+    artistToFindTrack,
     currentPlaylist,
     currentTrack,
+    findArtist,
     play,
     pause,
     find,
+    getThreeArtists,
     getThreeTracks,
     addSongToPlaylist,
     whom,

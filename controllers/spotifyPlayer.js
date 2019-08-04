@@ -87,6 +87,14 @@ async function getSearchTracks(query){
 
 }
 
+async function getArtists(query){
+    try {
+        return await spotifyApi.searchArtists(query);
+    } catch (error) {
+        logger.error(`Spotify API: Get Artists failed. ${JSON.stringify(error)}`);
+    }
+}
+
 
 async function getTrack(track_id){
     try {
@@ -165,6 +173,7 @@ async function transferPlayback(device_id){
 
 module.exports = {
     addTracks,
+    getArtists,
     getDevices,
     getAllPlaylists,
     getPlaybackState,

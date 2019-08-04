@@ -33,19 +33,28 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
       res.send();
       await spotifyController.getThreeTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
     }
+    else if (payload.actions[0].name == CONSTANTS.SEE_MORE_ARTISTS){
+      logger.info("See more artists action triggered");
+      res.send();
+      await spotifyController.getThreeArtists(payload.callback_id, payload.actions[0].value, payload.response_url);
+    }
     // Add a song button
     else if (payload.actions[0].name == CONSTANTS.ADD_SONG){
       logger.info("Add Song triggered");
       res.send(slack.deleteReply("ephemeral", ""));
-      await spotifyController.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user, payload.channel.id);
+      await spotifyController.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user);
     }
     else if (payload.actions[0].name == CONSTANTS.SKIP){
-      logger.info("Add Song triggered");
+      logger.info("Skip vote triggered");
       await spotifyController.voteSkip(payload.user, payload.callback_id, payload.response_url);
     }
     else if (payload.actions[0].name == CONSTANTS.RESET){
-      logger.info("Add Song triggered");
+      logger.info("Reset triggered");
       await spotifyController.reset(payload.response_url, payload.user.id);
+    }
+    else if (payload.actions[0].name == CONSTANTS.ARTIST){
+      logger.info("See more artists triggered");
+      await spotifyController.artistToFindTrack(payload.callback_id, payload.actions[0].value, payload.response_url)
     }
   }
   else{
@@ -139,14 +148,26 @@ app.post('/find', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup
   logger.info("Find Triggered");
   if (req.body.text == ""){
     res.send({
-      "text": "I need a search term... :face_palm: <@CK6V0MDD3>"
+      "text": "I need a search term... :face_palm:"
     });
   }
 else {
   res.send(slack.ack());
   await spotifyController.find(req.body.text, req.body.trigger_id, req.body.response_url);
 }
+});
 
+app.post('/artist', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
+  logger.info("Artist Find Triggered");
+  if (req.body.text == ""){
+    res.send({
+      "text": "I need a search term... :face_palm:"
+    });
+  }
+else {
+  res.send(slack.ack());
+  await spotifyController.findArtist(req.body.text, req.body.trigger_id, req.body.response_url);
+}
 });
 
 app.post('/whom', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {

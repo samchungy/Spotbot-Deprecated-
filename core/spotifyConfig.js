@@ -202,7 +202,7 @@ async function settings(trigger_id, response_url){
     }
 }
 
-function initialise(){
+async function initialise(){
     var spotify_config = config.getSpotifyConfig();
     if (spotify_config != null){
         if (spotify_config.now_playing == "yes"){

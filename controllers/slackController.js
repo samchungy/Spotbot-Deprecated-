@@ -45,21 +45,65 @@ function deleteReply(response_type, text, attachments){
 
 
 function trackToSlackAttachment(track, trigger_id) {
-    return {
-        "color": "#36a64f",
-        "title": track.name,
-        "title_link": track.external_urls.spotify,
-        "text": `:studio_microphone: *Artist* ${track.artists[0].name}\n\n :cd: *Album* ${track.album.name}`,
-        "thumb_url": `${track.album.images[0].url}`,
-        "callback_id": trigger_id,
-        "actions": [{
-            "text": "Add to playlist",
-            "type": "button",
-            "style": "primary",
-            "name": CONSTANTS.ADD_SONG,
-            "value": track.uri
-        }]
-    };
+
+    try {
+        var image = "";
+        if (track.album.images){
+            image = track.album.images[0].url;
+        }
+        return {
+            "color": "#36a64f",
+            "title": track.name,
+            "title_link": track.external_urls.spotify,
+            "text": `:studio_microphone: *Artist* ${track.artists[0].name}\n\n :cd: *Album* ${track.album.name}`,
+            "thumb_url": `${image}`,
+            "callback_id": trigger_id,
+            "actions": [{
+                "text": "Add to playlist",
+                "type": "button",
+                "style": "primary",
+                "name": CONSTANTS.ADD_SONG,
+                "value": track.uri
+            }]
+        };
+    } catch (error) {
+        logger.error(`Artist slack attachment fail ${error}`);
+    }
+}
+
+function artistToSlackAttachment(artist, trigger_id) {
+    try {
+        console.log(artist);
+        var genres;
+        if (artist.genres.length == 0){
+            genres = "Unknown"
+        } else {
+            genres = artist.genres.join(', ');
+        }
+        var image = "";
+        if (artist.images.length > 0 && artist.images[0]){
+            console.log("Image done");
+            image = artist.images[0].url;
+        }
+        return {
+            "color": "#36a64f",
+            "title": artist.name,
+            "title_link": artist.external_urls.spotify,
+            "text": `:musical_note: *Genres* ${genres}\n\n :busts_in_silhouette: *Followers* ${artist.followers.total}`,
+            "thumb_url": `${image}`,
+            "callback_id": trigger_id,
+            "actions": [{
+                "text": "View artist tracks",
+                "type": "button",
+                "style": "primary",
+                "name": CONSTANTS.ARTIST,
+                "value": artist.name
+            }]
+        };
+    } catch (error) {
+        logger.error(`Artist slack attachment fail ${error}`);
+    }
+
 }
 
 function dialogOption(value, label){
@@ -159,6 +203,7 @@ function ack(){
 
 module.exports = {
     ack,
+    artistToSlackAttachment,
     send,
     reply,
     deleteReply,

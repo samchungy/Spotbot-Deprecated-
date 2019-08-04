@@ -68,6 +68,15 @@ function setSearch(trigger_id, tracks, total_pages){
     });
 }
 
+function setArtistSearch(trigger_id, artists, total_pages){
+    var searches = db2.getCollection(CONSTANTS.SEARCH);
+    searches.insert({
+        trigger_id: trigger_id,
+        artists: artists,
+        total_pages: total_pages
+    });
+}
+
 function setSkip(uri, name, artist, users){
     var skip = db2.getCollection(CONSTANTS.SKIP);
     skip_track = skip.findOne({track : CONSTANTS.SKIP});
@@ -108,6 +117,7 @@ module.exports = {
     setCurrent,
     setHistory,
     setSkip,
+    setArtistSearch,
     setSearch,
     updateSearch,
     deleteSearch,
