@@ -87,6 +87,7 @@ async function getSearchTracks(query){
 
 }
 
+
 async function getTrack(track_id){
     try {
         return await spotifyApi.getTrack(track_id);
@@ -142,6 +143,7 @@ async function skip(){
         return await spotifyApi.skipToNext();
     } catch (error) {
         logger.error(`Spotify API: Skip failed. ${JSON.stringify(error)}`);
+        throw Error(error);
     }
 }
 
@@ -158,8 +160,6 @@ async function transferPlayback(device_id){
         throw Error(error);
     }
 }
-
-
 
 
 

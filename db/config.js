@@ -43,7 +43,7 @@ function setAuth(trigger_id, trigger_expires, response_url, channel_id){
 }
 
 function setSpotifyConfig(skip_votes, back_to_playlist, now_playing, disable_repeats_duration, 
-    playlist, playlist_id){
+    playlist, playlist_id, playlist_link, default_device, default_device_name, channel){
     var spotify_config = find(CONSTANTS.SPOTIFY_CONFIG);
     if (spotify_config == null){
         create(CONSTANTS.SPOTIFY_CONFIG);
@@ -55,6 +55,10 @@ function setSpotifyConfig(skip_votes, back_to_playlist, now_playing, disable_rep
     spotify_config.disable_repeats_duration = disable_repeats_duration;
     spotify_config.playlist = playlist;
     spotify_config.playlist_id = playlist_id;
+    spotify_config.playlist_link = playlist_link;
+    spotify_config.default_device = default_device;
+    spotify_config.default_device_name = default_device_name;
+    spotify_config.channel = channel;
     update(spotify_config);
 }
 

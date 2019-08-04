@@ -62,6 +62,13 @@ function trackToSlackAttachment(track, trigger_id) {
     };
 }
 
+function dialogOption(value, label){
+    return {
+        "label": label,
+        "value": value
+    }
+}
+
 function slackAttachment(text, callback_id, fallback, action_text, action_name, action_value){
     return {
         "text" : text,
@@ -99,12 +106,17 @@ async function send(message, response_url){
 
 
 async function sendDialog(params){
-    return axios.post(`https://slack.com/api/dialog.open`, qs.stringify(params));
+    try {
+        return axios.post(`https://slack.com/api/dialog.open`, qs.stringify(params));
+
+    } catch (error) {
+        logger.error(`Send dialog failed ${error}`)
+    }
 }
 
 async function post(channel_id, text){
     try {
-        params = {
+        var params = {
             token: process.env.SLACK_TOKEN,
             channel: channel_id,
             text: text
@@ -150,6 +162,7 @@ module.exports = {
     send,
     reply,
     deleteReply,
+    dialogOption,
     post,
     postReply,
     postEphemeral,

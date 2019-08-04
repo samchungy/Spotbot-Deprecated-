@@ -15,7 +15,6 @@ const logger = require('../log/winston');
 
 
 //Load Lokijs db
-const DEFAULT_DEVICE_ID = '6d2e33d004c05821b7be5da785dbc3a2c55eeca7';
 
 function isRepeat(disable_repeats_duration, time){
     if (moment(time).add(disable_repeats_duration, 'h').isAfter(moment())){
@@ -55,9 +54,6 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
                     return
                 }
             }
-            else{
-                console.log("Not duration");
-            }
             history.slack_user = slack_user.id;
             history.time = moment();
             tracks.updateHistory(history);
@@ -66,7 +62,7 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
         let text = `:tada: ${artist} - ${name} was added to the playlist.`
         let current_track = await spotify_player.getPlayingTrack();
         // Get the song back on playlist
-        if (back_to_playlist == "yes" && current_track.statusCode != 204 && !onPlaylist(current_track.body.context)){
+        if (back_to_playlist == "yes" && current_track.statusCode != 204 && !spotify_config.onPlaylist(current_track.body.context)){
             let array = [current_track.body.item.uri, track_uri];
             await setBackToPlaylist(playlist_id, array, current_track);
             text += " Spotify will return to the playlist after this song."
@@ -188,8 +184,9 @@ async function play(response_url) {
             await slack.sendReply(":information_source: Your Spotify device is currently closed.", null, response_url);
             return;
         }
+        var default_device = spotify_config.getDefaultDevice();
         let device = _.find(device_list.body.devices, {
-            id: DEFAULT_DEVICE_ID
+            id: default_device
         });
         if (device) {
             await spotify_player.transferPlayback(device.id);
@@ -237,6 +234,7 @@ async function pause(response_url) {
     return;
 
 }
+
 /**
  * Gets up to 3 tracks from our local db
  * @param {string} trigger_id Slack trigger id
@@ -269,7 +267,7 @@ async function getThreeTracks(trigger_id, pagenum, response_url) {
 
         slack_attachments.push(slack.slackAttachment(`Page: ${pagenum}/${search.total_pages}`, trigger_id,
             "See more tracks", "See more tracks", CONSTANTS.SEE_MORE_TRACKS, pagenum+1));
-        await slack.sendEphemeralReply(`Are these the tracks you were looking for?`, slack_attachments, response_url);
+        await slack.sendEphemeralReply(`:mag: Are these the tracks you were looking for?`, slack_attachments, response_url);
         return;
     } catch (error) {
         logger.error(`Failed to get 3 more tracks ${error}`);
@@ -294,7 +292,7 @@ async function find(query, trigger_id, response_url) {
         } else {
             // Store in our db
             tracks.setSearch(trigger_id, search_tracks, Math.ceil(search_tracks.length / 3));
-            getThreeTracks(trigger_id, 1, response_url);
+            await getThreeTracks(trigger_id, 1, response_url);
             return;
         }
     } catch (error) {
@@ -302,15 +300,6 @@ async function find(query, trigger_id, response_url) {
     }
     await slack.sendEphemeralReply(`:slightly_frowning_face: Finding tracks failed.`, response_url);
     return;
-}
-
-function onPlaylist(context){
-    var playlist_id = spotify_config.getPlaylistId();
-    var regex = /[^:]+$/;
-    var found;
-    return !(context == null || (context.uri && 
-        (found = context.uri.match(regex)) && found[0] != playlist_id));
-
 }
 
 async function whom(response_url) {
@@ -322,7 +311,7 @@ async function whom(response_url) {
             return;
         }
         // Check if Spotify is playing from the playlist.
-        if(!onPlaylist(current_track.body.context)){
+        if(!spotify_config.onPlaylist(current_track.body.context)){
             await slack.sendReply(`:information_source: Spotify is not playing from the playlist. Current Song: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
             return;
 
@@ -362,10 +351,8 @@ async function whom(response_url) {
 }
 
 function skip_attachment(slack_users, num_votes, track_uri){
-    console.log(num_votes);
     var users = "";
     var votes_word = "votes";
-    console.log(slack_users);
     for (let user of slack_users){
         users += `<@${user}> `
     }
@@ -478,7 +465,31 @@ async function resetRequest(response_url){
     return;
 }
 
+async function currentTrack(response_url){
+    let current_track = await spotify_player.getPlayingTrack();
+    if (current_track.statusCode == 204){
+        slack.sendReply(":information_source: Spotify is currently not playing", null, response_url);
+        return;
+    }
+    if (spotify_config.onPlaylist(current_track.body.context)){
+        slack.sendReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`, null, response_url);
+        return;
+    } else {
+        slack.sendReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
+        return;
+    }
+}
+
+async function currentPlaylist(response_url){
+    var current_playlist = spotify_config.getPlaylistName();
+    var playlist_link = spotify_config.getPlaylistLink();
+    slack.sendReply(`:notes: Currently playing from Spotify playlist: <${playlist_link}|${current_playlist}>`, null, response_url); 
+    return;
+}
+
 module.exports = {
+    currentPlaylist,
+    currentTrack,
     play,
     pause,
     find,

@@ -2,6 +2,10 @@ const CONSTANTS = require('../constants');
 const init = require('./init');
 const {db2} = init;
 
+function getCurrent(){
+    var current = db2.getCollection(CONSTANTS.CURRENT_TRACK);
+    return current.findOne( {name: CONSTANTS.CURRENT_TRACK} );
+}
 
 function getHistory(uri){
     var history = db2.getCollection(CONSTANTS.HISTORY);
@@ -30,6 +34,31 @@ function setHistory(uri, name, artist, user_id, time){
     });
 }
 
+function setCurrent(uri){
+    var current = db2.getCollection(CONSTANTS.CURRENT_TRACK);
+    var current_track = current.findOne({name: CONSTANTS.CURRENT_TRACK});
+    if (current_track == null){
+        current.insert({
+            name: CONSTANTS.CURRENT_TRACK,
+            uri: uri
+        })
+    }
+    else{
+        current_track.uri = uri;
+        current.update(current_track);
+    }
+
+}
+
+function setArtist(trigger_id, artists, total_pages){
+    var searches = db2.getCollection(CONSTANTS.SEARCH);
+    searches.insert({
+        trigger_id: trigger_id,
+        artists: artists,
+        total_pages: total_pages
+    })
+}
+
 function setSearch(trigger_id, tracks, total_pages){
     var searches = db2.getCollection(CONSTANTS.SEARCH);
     searches.insert({
@@ -46,7 +75,6 @@ function setSkip(uri, name, artist, users){
         skip.insert({
             track: CONSTANTS.SKIP
         });
-        console.log('inserting');
         return;
     }
     skip_track.uri = uri;
@@ -72,9 +100,12 @@ function deleteSearch(search){
 }
 
 module.exports = {
+    getCurrent,
     getHistory,
     getSearch,
     getSkip,
+    setArtist,
+    setCurrent,
     setHistory,
     setSkip,
     setSearch,

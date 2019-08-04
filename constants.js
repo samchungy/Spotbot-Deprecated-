@@ -21,10 +21,13 @@ module.exports = {
         'playlist-modify-private',
         'streaming'],
     SEE_MORE_TRACKS : "SEEMORETRACKS",
+    SEE_MORE_ARTISTS: "SEEMOREARTISTS",
     ADD_SONG : "ADDSONG",
     CRONJOB1 : "CRONJOB1",
     CRONJOB2 : "CRONJOB2",
     SKIP: "skip",
+    CURRENT_TRACK : "current_track",
     AFRICA: "spotify:track:2374M0fQpWi3dLnB54qaLX",
-    RESET: "reset"
+    RESET: "reset",
+    ARTIST: "artist"
 }

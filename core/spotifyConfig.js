@@ -1,10 +1,13 @@
 const CONSTANTS = require('../constants');
 const config = require('../db/config');
+const tracks = require('../db/tracks');
 const slack = require('../controllers/slackController');
 const {spotifyApi} = require('../controllers/spotify');
 const spotify_player = require('../controllers/spotifyPlayer');
 const {authenticate, isAuthExpired} = require('../core/spotifyAuth');
 const logger = require('../log/winston');
+const schedule = require('node-schedule');
+const _ = require('lodash');
 
 async function setup_auth(trigger_id, response_url, channel_id){
     try {
@@ -19,7 +22,7 @@ async function setup_auth(trigger_id, response_url, channel_id){
     }
 }
 
-async function setup(user_name, trigger_id, response_url, channel_id){
+async function setup(user_name, trigger_id, response_url){
     try {
         var admins = config.getAdmins();
         var auth = config.getAuth();
@@ -41,16 +44,40 @@ async function setup(user_name, trigger_id, response_url, channel_id){
 // Spotify Settings
 // ------------------------
 
+async function getDevices(){
+    var default_device_options = [slack.dialogOption("None:None", "None")];
+    var spotify_config = config.getSpotifyConfig();
+    if (spotify_config != null && spotify_config.default_device){
+        default_device_options.push(slack.dialogOption(spotify_config.default_device+":"+spotify_config.default_device_name, spotify_config.default_device_name));
+    }
+    var devices = await spotifyApi.getMyDevices();
+    if (devices.body.devices.length != 0){
+        for(let device of devices.body.devices){
+            default_device_options.push(slack.dialogOption(device.id+":"+`${device.name} - ${device.type}`, `${device.name} - ${device.type}`));
+        }
+        default_device_options = _.uniqBy(default_device_options, 'value');
+    }
+    return {
+        "options" : default_device_options
+    }
+}
+
 async function settings(trigger_id, response_url){
     try{
         var spotify_config = config.getSpotifyConfig();
-        var playlist = "", 
+        var playlist = "",
+            channel = "",
             disable_repeats_duration = "",
             skip_votes = "",
             back_to_playlist = "",
+            channel = "",
             now_playing = "";
+        var default_device_options = null;
     
         if (spotify_config != null){
+            if (spotify_config.channel){
+                channel = spotify_config.channel;
+            }
             if (spotify_config.playlist){
                 playlist = spotify_config.playlist;
             }
@@ -66,13 +93,23 @@ async function settings(trigger_id, response_url){
             if (spotify_config.now_playing){
                 now_playing = spotify_config.now_playing;
             }
-        }
-    
+            if (spotify_config.default_device){
+                default_device_options = [slack.dialogOption(spotify_config.default_device+':'+spotify_config.default_device_name, spotify_config.default_device_name)];
+            }
+        }    
         var dialog = {
             "callback_id": CONSTANTS.SPOTIFY_CONFIG,
             "title": "Spotbot Settings",
             "submit_label": "Save",
             "elements": [
+                {
+                    "type": "select",
+                    "label": "Slack channel restriction",
+                    "name": "channel",
+                    "hint": "The channel Slackbot will restrict usage of commands to.",
+                    "data_source" : "channels",
+                    "value" : channel
+                },
               {
                 "type": "text",
                 "label": "Playlist",
@@ -81,6 +118,14 @@ async function settings(trigger_id, response_url){
                 "placeholder": "SpotbotPlaylist",
                 "value": `${playlist}`,
                 "hint": "The name of the playlist Spotbot will save to. If it does not exist Spotbot will create one for you."
+              },
+              {
+                "type": "select",
+                "label": "Default Spotify Device",
+                "name": "default_device",
+                "hint": "This helps Spotbot with commands. Turn on your Spotify device",
+                "data_source" : "external",
+                "selected_options" : default_device_options
               },
               {
                 "type": "text",
@@ -157,6 +202,48 @@ async function settings(trigger_id, response_url){
     }
 }
 
+function initialise(){
+    var spotify_config = config.getSpotifyConfig();
+    if (spotify_config != null){
+        if (spotify_config.now_playing == "yes"){
+            setNowPlaying();
+        }
+    }
+}
+
+function setNowPlaying() {
+    logger.info("Now Playing Set");
+    schedule.scheduleJob(CONSTANTS.CRONJOB2, '*/10 * * * * *', async () => {
+        try {
+            logger.info(`Now Playing Run`);
+            let current_track = await spotify_player.getPlayingTrack();
+            if (current_track.statusCode == 204){
+                return;
+            }
+            var current = tracks.getCurrent();
+            if (!current || current_track.body.item.uri != current.uri){
+                tracks.setCurrent(current_track.body.item.uri);
+                if (onPlaylist(current_track.body.context)){
+                    slack.post(getChannel(), `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`);
+                } else {
+                    slack.post(getChannel(), `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}.`)
+                }
+            }
+        } catch (error) {
+            logger.error(`Now Playing Cron Job Failed ${error}`);
+        }
+
+    });
+}
+
+function removeNowPlaying(){
+    logger.info("Removing now playing");
+    var j = schedule.scheduledJobs[CONSTANTS.CRONJOB2]
+    if (j){
+        j.cancel();
+    }
+}
+
 /**
  * 
  * @param {} submission 
@@ -192,6 +279,14 @@ async function verifySettings(submission, response_url){
                 config.setSpotifyConfig();
                 spotify_config = config.getSpotifyConfig();
             }
+            var default_device = submission.default_device.split(":");
+            var device_id = default_device[0];
+            var device_name = default_device[1];
+            if (submission.now_playing == "yes"){
+                setNowPlaying();
+            } else {
+                removeNowPlaying();
+            }
             // Add to DB.
             if (spotify_config.playlist != submission.playlist) {
                 let result = await spotify_player.getAllPlaylists();
@@ -199,7 +294,7 @@ async function verifySettings(submission, response_url){
                     // If a playlist currently exists
                     if (submission.playlist == playlist.name) {
                         config.setSpotifyConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing,
-                            submission.disable_repeats_duration, submission.playlist, playlist.id);
+                            submission.disable_repeats_duration, submission.playlist, playlist.id, playlist.external_urls.spotify, device_id, device_name, submission.channel);
                         slack.sendEphemeralReply(":white_check_mark: Settings successfully saved.", null, response_url);
                         return;
                     }
@@ -207,14 +302,14 @@ async function verifySettings(submission, response_url){
 
                 let createdPlaylist = await spotifyApi.createPlaylist(auth.id, submission.playlist, {public : false, collaborative : true });
                 config.setSpotifyConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing,
-                    submission.disable_repeats_duration, submission.playlist, createdPlaylist.body.id);
+                    submission.disable_repeats_duration, submission.playlist, createdPlaylist.body.id, createdPlaylist.body.external_urls.spotify, device_id, device_name, submission.channel);
                 slack.sendEphemeralReply(":white_check_mark: Settings successfully saved.", null, response_url);
                 return;
 
             }
             else{
                 config.setSpotifyConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing,
-                    submission.disable_repeats_duration, submission.playlist, getPlaylistId());
+                    submission.disable_repeats_duration, submission.playlist, getPlaylistId(), getPlaylistLink(), device_id, device_name, submission.channel);
                 slack.sendEphemeralReply(":white_check_mark: Settings successfully saved.", null, response_url);
                 return;
             }
@@ -317,6 +412,14 @@ function getPlaylistId(){
     return config.getSpotifyConfig().playlist_id;
 }
 
+function getPlaylistLink(){
+    return config.getSpotifyConfig().playlist_link;
+}
+
+function getPlaylistName(){
+    return config.getSpotifyConfig().playlist;
+}
+
 function getSkipVotes(){
     return config.getSpotifyConfig().skip_votes;
 }
@@ -333,22 +436,60 @@ function getSpotifyUserId(){
     return config.getAuth().id;
 }
 
+function getDefaultDevice(){
+    return config.getSpotifyConfig().default_device;
+}
+
 function getChannel(){
+    if (config.getSpotifyConfig() != null){
+        return config.getSpotifyConfig().channel;
+    }
     return config.getAuth().channel_id;
+}
+
+function getChannelName(){
+    return config.getSpotifyConfig().channel_name;
+}
+
+function isInChannel(req, res, next){
+    var channel = getChannel();
+    if (channel != req.body.channel_id){
+        res.send();
+        slack.sendEphemeralReply(`:no_entry: Spotbot commands are restricted to <#${channel}>`, null, req.body.response_url);
+    } else {
+        next();
+    }
+}
+
+function onPlaylist(context){
+    var playlist_id = getPlaylistId();
+    var regex = /[^:]+$/;
+    var found;
+    return !(context == null || (context.uri && 
+        (found = context.uri.match(regex)) && found[0] != playlist_id));
+
 }
 
 
 module.exports = {
     addAdmin,
+    initialise,
+    isInChannel,
     isSetup,
     isSettingsSet,
     getAdmins,
     getBackToPlaylist,
     getChannel,
+    getChannelName,
+    getDefaultDevice,
+    getDevices,
     getDisableRepeatsDuration,
     getPlaylistId,
+    getPlaylistName,
+    getPlaylistLink,
     getSkipVotes,
     getSpotifyUserId,
+    onPlaylist,
     removeAdmin,
     setup,
     setup_auth,

@@ -31,6 +31,7 @@ function initialiseTracks() {
     var searches = db2.getCollection(CONSTANTS.SEARCH);
     var history = db2.getCollection(CONSTANTS.HISTORY);
     var skip = db2.getCollection(CONSTANTS.SKIP);
+    var current_track = db2.getCollection(CONSTANTS.CURRENT_TRACK);
 
     if (searches === null || searches.count() == 0) {
         db2.addCollection(CONSTANTS.SEARCH, {
@@ -47,6 +48,13 @@ function initialiseTracks() {
             unique: CONSTANTS.SKIP
         });
     }
+    if (current_track === null || current_track.count() == 0) {
+        db2.addCollection(CONSTANTS.CURRENT_TRACK, {
+            unique: CONSTANTS.CURRENT_TRACK
+        });
+    }
+    let {initialise} = require('../core/spotifyConfig');
+    initialise();
 }
 
 module.exports = {

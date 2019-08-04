@@ -135,11 +135,11 @@ app.post('/pause', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetu
   await spotifyController.pause(req.body.response_url);
 });
 
-app.post('/find', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
+app.post('/find', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
   logger.info("Find Triggered");
   if (req.body.text == ""){
     res.send({
-      "text": "I need a search term... :face_palm:"
+      "text": "I need a search term... :face_palm: <@CK6V0MDD3>"
     });
   }
 else {
@@ -149,23 +149,39 @@ else {
 
 });
 
-app.post('/whom', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
+app.post('/whom', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
   logger.info("Whom Triggered");
   res.send(slack.ack());
   await spotifyController.whom(req.body.response_url);
 });
 
-app.post('/skip', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
+app.post('/skip', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
   logger.info("Skip triggered");
   res.send(slack.ack());
   await spotifyController.skip(req.body.user_id, req.body.response_url);
 });
 
-app.post('/reset', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
+app.post('/reset', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
   logger.info("Reset triggered");
   res.send(slack.ack());
   await spotifyController.resetRequest(req.body.response_url);
 })
 
+app.post('/options', slackAuth.signVerification, async (req, res) => {
+  logger.info("Option triggered");
+  res.send(await spotifySetup.getDevices());
+})
+
+app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
+  logger.info("Current triggered");
+  if (req.body.text == "track" || req.body.text == ""){
+    res.send();
+    await spotifyController.currentTrack(req.body.response_url);
+  }
+  else if (req.body.text == "playlist"){
+    res.send();
+    await spotifyController.currentPlaylist(req.body.response_url);
+  }
+});
 
 app.listen(port, () => logger.info(`App listening on port ${port}!`))

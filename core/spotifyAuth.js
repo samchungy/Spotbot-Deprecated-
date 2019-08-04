@@ -83,7 +83,7 @@ async function getAccessToken(code, state) {
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
     } catch (error) {
-        console.log("Auth Grant Failed", error);
+        logger.error(`Auth grant failed ${error}`);
     }
     
 }

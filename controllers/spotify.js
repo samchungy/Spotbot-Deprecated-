@@ -11,7 +11,6 @@ var spotifyApi = new SpotifyWebApi({
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET
 });
 
-const DEFAULT_DEVICE_ID = '6d2e33d004c05821b7be5da785dbc3a2c55eeca7';
 
 /**
  * 
@@ -20,9 +19,7 @@ const DEFAULT_DEVICE_ID = '6d2e33d004c05821b7be5da785dbc3a2c55eeca7';
 async function authorizationCodeGrant(code){
     try{
         let tokens = await spotifyApi.authorizationCodeGrant(code);
-        console.log('The token expires in ' + tokens.body['expires_in']);
-        console.log('The access token is ' + tokens.body['access_token']);
-        console.log('The refresh token is ' + tokens.body['refresh_token']);
+        logger.info(`Token refreshed`);
         updateTokens(tokens.body['access_token'], tokens.body['refresh_token']);
     }
     catch(error){
