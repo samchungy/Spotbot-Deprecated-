@@ -73,7 +73,6 @@ function trackToSlackAttachment(track, trigger_id) {
 
 function artistToSlackAttachment(artist, trigger_id) {
     try {
-        console.log(artist);
         var genres;
         if (artist.genres.length == 0){
             genres = "Unknown"
@@ -82,7 +81,6 @@ function artistToSlackAttachment(artist, trigger_id) {
         }
         var image = "";
         if (artist.images.length > 0 && artist.images[0]){
-            console.log("Image done");
             image = artist.images[0].url;
         }
         return {
