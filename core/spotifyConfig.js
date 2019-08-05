@@ -232,7 +232,6 @@ function setNowPlaying() {
     logger.info("Now Playing Set");
     schedule.scheduleJob(CONSTANTS.CRONJOB2, '*/10 * * * * *', async () => {
         try {
-            logger.info(`Now Playing Run`);
             let current_track = await spotify_player.getPlayingTrack();
             if (current_track.statusCode == 204){
                 return;
