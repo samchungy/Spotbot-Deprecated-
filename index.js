@@ -195,11 +195,11 @@ app.post('/options', slackAuth.signVerification, async (req, res) => {
 app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
   logger.info("Current triggered");
   if (req.body.text == "track" || req.body.text == ""){
-    res.send();
+    res.send(slack.ack());
     await spotifyController.currentTrack(req.body.response_url);
   }
   else if (req.body.text == "playlist"){
-    res.send();
+    res.send(slack.ack());
     await spotifyController.currentPlaylist(req.body.response_url);
   }
 });
