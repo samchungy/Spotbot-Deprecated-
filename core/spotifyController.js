@@ -54,7 +54,7 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
                     return
                 }
             }
-            history.slack_user = slack_user.id;
+            history.user_id = slack_user.id;
             history.time = moment();
             tracks.updateHistory(history);
         }
@@ -364,7 +364,7 @@ async function whom(response_url) {
                         return;            
                     }
                     else{
-                        await slack.sendReply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was last added ${moment(previous_track.time).fromNow()} by <@${previous_track.slack_user}>.`, null, response_url);
+                        await slack.sendReply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was last added ${moment(previous_track.time).fromNow()} by <@${previous_track.user_id}>.`, null, response_url);
                         return;
                     }
                 }
@@ -426,6 +426,7 @@ async function skip(slack_user, response_url){
                 return;    
             }
             tracks.setSkip(current_track.body.item.uri, current_track.body.item.name, current_track.body.item.artists[0].name, [slack_user]);
+            console.log(tracks.getSkip());
             await slack.sendReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${slack_user}> has requested to skip ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}. `, 
                 [skip_attachment([slack_user], parseInt(skip_votes)-1, current_track.body.item.uri)], response_url);
             return;
@@ -438,19 +439,15 @@ async function skip(slack_user, response_url){
 
 async function voteSkip(slack_user, track_uri, response_url){
     try {
-        logger.info("Skip vote triggered");
         var skip_votes = spotify_config.getSkipVotes();
-        var auth = config.getAuth();
         var skip = tracks.getSkip();
-        var channel_id = spotify_config.getChannel();
         let current_track = await spotify_player.getPlayingTrack();
         if (skip.uri != track_uri || _.get(current_track,'body.item.uri') != skip.uri){
             await slack.sendReply("This vote has expired.", null, response_url);
             return;
         }
         if (skip.users.includes(slack_user.id)){
-            slack.postEphemeral(auth.channel_id, slack_user.id, "You have already voted on this. ");
-            await slack.sendReply("", null, response_url);
+            slack.postEphemeral(spotify_config.getChannel(), slack_user.id, "You have already voted on this. ");
             return;
         }
         else{
