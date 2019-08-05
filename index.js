@@ -75,7 +75,7 @@ app.post('/setup', slackAuth.signVerification, slackAuth.isAdmin, async (req, re
 if (req.body.text == "auth") {
     logger.info("Auth Slash Command Used");
     res.send();
-    await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.headers.host);
+    await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.headers.host, req.body.user_name);
 
   } else if (req.body.text == "settings") {
     res.send();

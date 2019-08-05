@@ -9,7 +9,7 @@ const logger = require('../log/winston');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 
-async function setup_auth(trigger_id, response_url, channel_id, url){
+async function setup_auth(trigger_id, response_url, channel_id, url, user_name){
     try {
         var admins = config.getAdmins();
         if (admins == null){
