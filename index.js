@@ -11,8 +11,6 @@ const spotifyController = require('./core/spotifyController');
 const slack = require('./controllers/slackController');
 const port = process.env.PORT || 3000;
 const logger = require('./log/winston');
-const moment = require('moment');
-const qs = require('querystring');
 const slackAuth = require('./core/slackAuth');
 
 app.use(bodyParser.json());
@@ -76,14 +74,14 @@ app.post('/setup', slackAuth.signVerification, slackAuth.isAdmin, async (req, re
   if (req.body.text == "setup"){
     logger.info("Setup Slash Command Used");
     res.send();
-    await spotifySetup.setup(req.body.user_name, req.body.trigger_id, req.body.response_url)
+    await spotifySetup.setup(req.body.user_name, req.body.trigger_id, req.body.response_url, req.headers.host)
   }
   else{
     if (spotifySetup.isSetup(req.body.response_url)){
       if (req.body.text == "auth"){
         logger.info("Auth Slash Command Used");
         res.send();
-        await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id);
+        await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.headers.host);
     
       }
       else if (req.body.text == "settings"){

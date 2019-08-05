@@ -9,9 +9,9 @@ const logger = require('../log/winston');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 
-async function setup_auth(trigger_id, response_url, channel_id){
+async function setup_auth(trigger_id, response_url, channel_id, url){
     try {
-        let auth_url = await authenticate(trigger_id, response_url, channel_id);
+        let auth_url = await authenticate(trigger_id, response_url, channel_id, url);
         var auth_attachment = slack.urlAttachment("Please visit the following link to authenticate your Spotify account: " + auth_url, 
             ":link: Authenticate with Spotify", auth_url)
         slack.sendEphemeralReply("Please visit the following link to authenticate your Spotify account. You have 30 minutes to authenticate.", 
@@ -22,7 +22,7 @@ async function setup_auth(trigger_id, response_url, channel_id){
     }
 }
 
-async function setup(user_name, trigger_id, response_url){
+async function setup(user_name, trigger_id, response_url, redir_url){
     try {
         var admins = config.getAdmins();
         var auth = config.getAuth();
@@ -33,7 +33,7 @@ async function setup(user_name, trigger_id, response_url){
         }
         // Start Sp(otify Auth
         if (auth == null || isAuthExpired()){
-            setup_auth(trigger_id, response_url);
+            setup_auth(trigger_id, response_url, redir_url);
         }
     } catch (error) {
         logger.error(`Setting up Spotbot failed ${error}`);
@@ -213,9 +213,7 @@ async function initialise(){
         clearSearchCronJob();
     } catch (error) {
         logger.error(`Config not yet initialised`);
-        throw Error(error);
     }
-
 }
 
 function clearSearchCronJob() {
@@ -492,7 +490,7 @@ function onPlaylist(context){
 
 module.exports = {
     addAdmin,
-    initialise,
+    initialise2: initialise,
     isInChannel,
     isSetup,
     isSettingsSet,

@@ -6,7 +6,6 @@ const logger = require('../log/winston');
 
 // Setting credentials can be done in the wrapper's constructor, or using the API object's setters.
 var spotifyApi = new SpotifyWebApi({
-    redirectUri: process.env.SPOTIFY_REDIRECT_URI,
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET
 });
@@ -32,8 +31,9 @@ async function authorizationCodeGrant(code){
  * @param {string} trigger_id Slack trigger id
  * @returns Authorization URL
  */
-async function getAuthorizeURL(trigger_id){
+async function getAuthorizeURL(trigger_id, url){
     try {
+        spotifyApi.setRedirectURI(url);
         let authorize_url = await spotifyApi.createAuthorizeURL(CONSTANTS.SCOPES, trigger_id);
         return authorize_url;
     } catch (error) {

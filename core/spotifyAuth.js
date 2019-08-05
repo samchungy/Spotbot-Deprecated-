@@ -29,8 +29,9 @@ function initialise() {
  * @param {string} trigger_id 
  * @param {string} response_url 
  */
-async function authenticate(trigger_id, response_url, channel_id){
+async function authenticate(trigger_id, response_url, channel_id, url){
     try {
+        var url_redirect = "http" + url + "/auth";
         var thirty = moment().add(30, 'm');
         var auth = config.getAuth();
         // If previously exists:
@@ -40,7 +41,7 @@ async function authenticate(trigger_id, response_url, channel_id){
         }
         config.setAuth(trigger_id, thirty, response_url, channel_id);
         // Create the authorization URL
-        let authorizeURL = await spotify.getAuthorizeURL(trigger_id);
+        let authorizeURL = await spotify.getAuthorizeURL(trigger_id, url_redirect);
         return authorizeURL;
     } catch (error) {
         logger.error(`Authentication failed ${error}`);
