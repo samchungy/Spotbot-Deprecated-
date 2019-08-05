@@ -63,7 +63,12 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
         let current_track = await spotify_player.getPlayingTrack();
         // Get the song back on playlist
         if (back_to_playlist == "yes" && current_track.statusCode != 204 && !spotify_config.onPlaylist(current_track.body.context)){
-            let array = [current_track.body.item.uri, track_uri];
+            var array;
+            if (current_track.body.item.uri != track_uri){
+                array = [current_track.body.item.uri, track_uri];
+            } else {
+                array = [track_uri]
+            }
             await setBackToPlaylist(playlist_id, array, current_track);
             text += " Spotify will return to the playlist after this song."
         } else{
