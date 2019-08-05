@@ -31,7 +31,7 @@ function initialise() {
  */
 async function authenticate(trigger_id, response_url, channel_id, url){
     try {
-        var url_redirect = "http" + url + "/auth";
+        var url_redirect = "http://" + url + "/auth";
         var thirty = moment().add(30, 'm');
         var auth = config.getAuth();
         // If previously exists:
