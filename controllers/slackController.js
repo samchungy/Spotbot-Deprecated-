@@ -55,7 +55,8 @@ function trackToSlackAttachment(track, trigger_id) {
             "color": "#36a64f",
             "title": track.name,
             "title_link": track.external_urls.spotify,
-            "text": `:studio_microphone: *Artist* ${track.artists[0].name}\n\n :cd: *Album* ${track.album.name}`,
+            "text": `:studio_microphone: *Artist* ${track.artists[0].name}\n\n:cd: *Album* ${track.album.name}`,
+            "mrkdwn_in": ["text"],
             "thumb_url": `${image}`,
             "callback_id": trigger_id,
             "actions": [{
@@ -88,6 +89,7 @@ function artistToSlackAttachment(artist, trigger_id) {
             "title": artist.name,
             "title_link": artist.external_urls.spotify,
             "text": `:musical_note: *Genres* ${genres}\n\n :busts_in_silhouette: *Followers* ${artist.followers.total}`,
+            "mrkdwn_in": ["text"],
             "thumb_url": `${image}`,
             "callback_id": trigger_id,
             "actions": [{
