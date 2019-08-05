@@ -22,6 +22,8 @@ function initialiseConfig() {
     }
     let {initialise} = require('../core/spotifyAuth');
     initialise();
+    let {initialise2} = require('../core/spotifyConfig');
+    initialise2();
 }
 
 /**
@@ -52,14 +54,6 @@ function initialiseTracks() {
         db2.addCollection(CONSTANTS.CURRENT_TRACK, {
             unique: CONSTANTS.CURRENT_TRACK
         });
-    }
-    let {initialise} = require('../core/spotifyConfig');
-    try {
-        wait(3000);
-        initialise();
-    } catch (error) {
-        wait(5000);
-        initialise();
     }
 
 }
