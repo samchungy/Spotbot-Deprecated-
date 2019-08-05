@@ -108,7 +108,13 @@ function deleteSearch(search){
     searches.remove(search);
 }
 
+function clearSearches(){
+    var searches = db2.getCollection(CONSTANTS.SEARCH);
+    searches.clear( {removeIndices: true} );
+}
+
 module.exports = {
+    clearSearches,
     getCurrent,
     getHistory,
     getSearch,

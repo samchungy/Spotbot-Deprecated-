@@ -203,12 +203,31 @@ async function settings(trigger_id, response_url){
 }
 
 async function initialise(){
-    var spotify_config = config.getSpotifyConfig();
-    if (spotify_config != null){
-        if (spotify_config.now_playing == "yes"){
-            setNowPlaying();
+    try {
+        var spotify_config = config.getSpotifyConfig();
+        if (spotify_config != null){
+            if (spotify_config.now_playing == "yes"){
+                setNowPlaying();
+            }
         }
+        clearSearchCronJob();
+    } catch (error) {
+        logger.error(`Config not yet initialised`);
+        throw Error(error);
     }
+
+}
+
+function clearSearchCronJob() {
+    logger.info("Cronjob Clear Search Set");
+    schedule.scheduleJob(CONSTANTS.CRONJOB1, '0 0 * * 0', () => {
+        try {
+            logger.info("Search cleared");
+            tracks.clearSearches();
+        } catch (error) {
+            logger.error(`Search clear Cron Job Failed ${error}`);
+        }
+    });
 }
 
 function setNowPlaying() {

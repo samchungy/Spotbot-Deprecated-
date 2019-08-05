@@ -13,7 +13,7 @@ const db2 = new loki(CONSTANTS.TRACKS_FILE, {
     autosave: true
 });
 
-async function initialiseConfig() {
+function initialiseConfig() {
     var configs = db.getCollection(CONSTANTS.CONFIG);
     // If collection is empty do not load it, instead - create a new file
     if (configs === null || configs.count() == 0) {
@@ -21,13 +21,13 @@ async function initialiseConfig() {
         return;
     }
     let {initialise} = require('../core/spotifyAuth');
-    await initialise();
+    initialise();
 }
 
 /**
  * Initialise the database
  */
-async function initialiseTracks() {
+function initialiseTracks() {
     var searches = db2.getCollection(CONSTANTS.SEARCH);
     var history = db2.getCollection(CONSTANTS.HISTORY);
     var skip = db2.getCollection(CONSTANTS.SKIP);
@@ -54,8 +54,23 @@ async function initialiseTracks() {
         });
     }
     let {initialise} = require('../core/spotifyConfig');
-    await initialise();
+    try {
+        wait(3000);
+        initialise();
+    } catch (error) {
+        wait(5000);
+        initialise();
+    }
+
 }
+
+function wait(ms){
+    var start = new Date().getTime();
+    var end = start;
+    while(end < start + ms) {
+      end = new Date().getTime();
+   }
+ }
 
 module.exports = {
     db,
