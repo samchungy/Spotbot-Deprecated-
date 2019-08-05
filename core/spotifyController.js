@@ -104,7 +104,7 @@ async function setBackToPlaylist(playlist_id, tracks, current_track){
                 return track.track.uri == tracks[0]
             });
             if (index != -1){
-                await spotify_player.playWithContext(playlist_id, offset*100+index, current_track.body.progress_ms+1000);
+                await spotify_player.playWithContext(playlist_id, offset*100+index, current_track.body.progress_ms);
                 if (current_track.body.is_playing == false){
                     await spotify_player.pause();
                 }
