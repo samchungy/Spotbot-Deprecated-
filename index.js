@@ -44,6 +44,7 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
     }
     else if (payload.actions[0].name == CONSTANTS.SKIP){
       logger.info("Skip vote triggered");
+      res.send();
       await spotifyController.voteSkip(payload.user, payload.callback_id, payload.response_url);
     }
     else if (payload.actions[0].name == CONSTANTS.RESET){
