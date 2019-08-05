@@ -11,6 +11,11 @@ const _ = require('lodash');
 
 async function setup_auth(trigger_id, response_url, channel_id, url){
     try {
+        var admins = config.getAdmins();
+        if (admins == null){
+            config.setAdmin(user_name);
+            slack.sendEphemeralReply("You have been added as the admin of Spotbot", null, response_url);
+        }
         let auth_url = await authenticate(trigger_id, response_url, channel_id, url);
         var auth_attachment = slack.urlAttachment("Please visit the following link to authenticate your Spotify account: " + auth_url, 
             ":link: Authenticate with Spotify", auth_url)
@@ -22,24 +27,6 @@ async function setup_auth(trigger_id, response_url, channel_id, url){
     }
 }
 
-async function setup(user_name, trigger_id, response_url, redir_url){
-    try {
-        var admins = config.getAdmins();
-        var auth = config.getAuth();
-        // Assign user as admin.
-        if (admins == null){
-            config.setAdmin(user_name);
-            slack.sendEphemeralReply("You have been added as the admin of Spotbot", null, response_url);
-        }
-        // Start Sp(otify Auth
-        if (auth == null || isAuthExpired()){
-            setup_auth(trigger_id, response_url, redir_url);
-        }
-    } catch (error) {
-        logger.error(`Setting up Spotbot failed ${error}`);
-    }
-
-}
 // ------------------------
 // Spotify Settings
 // ------------------------
@@ -386,21 +373,6 @@ function isPositiveInteger(n) {
     return n >>> 0 === parseFloat(n);
 }
 
-async function isSetup(response_url){
-    try {
-        var admins = config.getAdmins();
-        if (admins == null){
-            await slack.sendEphemeralReply("Please run `/spotbot setup`.", null, response_url);
-            return false;
-        }
-        else{
-            return true;
-        }
-    } catch (error) {
-        logger.error(`isSetup failed ${error}`);
-    }
-}
-
 async function isSettingsSet(req, res, next){
     try {
         if (config.getSpotifyConfig() == null){
@@ -491,7 +463,6 @@ module.exports = {
     addAdmin,
     initialise2: initialise,
     isInChannel,
-    isSetup,
     isSettingsSet,
     getAdmins,
     getBackToPlaylist,
@@ -507,7 +478,6 @@ module.exports = {
     getSpotifyUserId,
     onPlaylist,
     removeAdmin,
-    setup,
     setup_auth,
     settings,
     verifySettings

@@ -72,53 +72,38 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
 });
 
 app.post('/setup', slackAuth.signVerification, slackAuth.isAdmin, async (req, res) => {
-  if (req.body.text == "setup"){
-    logger.info("Setup Slash Command Used");
+if (req.body.text == "auth") {
+    logger.info("Auth Slash Command Used");
     res.send();
-    await spotifySetup.setup(req.body.user_name, req.body.trigger_id, req.body.response_url, req.headers.host)
-  }
-  else{
-    if (spotifySetup.isSetup(req.body.response_url)){
-      if (req.body.text == "auth"){
-        logger.info("Auth Slash Command Used");
-        res.send();
-        await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.headers.host);
-    
-      }
-      else if (req.body.text == "settings"){
-        res.send();
-        if (spotifyAuth.isAuthed2(req.body.response_url)){
-          logger.info("Settings Slash Command Used");
-          await spotifySetup.settings(req.body.trigger_id);
-        }
-      }
-      else {
-        let array = req.body.text.split(" ");
-        if (array){
-          if (array[0] == "admin"){
-            logger.info("Admin Slash Command Used");
-            if (array[1]){
-              if (array[1] == "add"){
-                res.send();
-                spotifySetup.addAdmin(array[2], req.body.response_url);
-              }
-              else if(array[1] == "remove"){
-                res.send();
-                spotifySetup.removeAdmin(array[2], req.body.user_name, req.body.response_url);
-              }
-              else if(array[1] == "list"){
-                res.send();
-                spotifySetup.getAdmins(req.body.response_url);
-              }
-            }
+    await spotifySetup.setup_auth(req.body.trigger_id, req.body.response_url, req.body.channel_id, req.headers.host);
+
+  } else if (req.body.text == "settings") {
+    res.send();
+    if (spotifyAuth.isAuthed2(req.body.response_url)) {
+      logger.info("Settings Slash Command Used");
+      await spotifySetup.settings(req.body.trigger_id);
+    }
+  } else {
+    let array = req.body.text.split(" ");
+    if (array) {
+      if (array[0] == "admin") {
+        logger.info("Admin Slash Command Used");
+        if (array[1]) {
+          if (array[1] == "add") {
+            res.send();
+            spotifySetup.addAdmin(array[2], req.body.response_url);
+          } else if (array[1] == "remove") {
+            res.send();
+            spotifySetup.removeAdmin(array[2], req.body.user_name, req.body.response_url);
+          } else if (array[1] == "list") {
+            res.send();
+            spotifySetup.getAdmins(req.body.response_url);
           }
         }
       }
-    } else {
-      res.send();
     }
   }
-});
+  });
 
 
 app.get('/auth', async (req, res) => {
@@ -199,7 +184,7 @@ app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySe
     await spotifyController.currentTrack(req.body.response_url);
   }
   else if (req.body.text == "playlist"){
-    res.send(slack.ack());
+    res.send(slack.ack);
     await spotifyController.currentPlaylist(req.body.response_url);
   }
 });
