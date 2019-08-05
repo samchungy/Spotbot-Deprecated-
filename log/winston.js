@@ -1,4 +1,6 @@
 const { createLogger, format, transports } = require('winston');
+const winston = require('winston');
+require('winston-daily-rotate-file');
 const env = process.env.NODE_ENV || 'development';
 const fs = require('fs');
 const path = require('path');
@@ -25,15 +27,28 @@ const logConfiguration = {
                 )
             )
         }),
-        new transports.File({
-            filename: './log/all.log',
+        new (winston.transports.DailyRotateFile)({
+            filename: 'application-%DATE%.log',
+            datePattern: 'YYYY-MM-DD-HH',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '14d',
             format: format.combine(
                 format.printf(
                     info =>
                     `${info.timestamp} ${info.level}: ${info.message}`
                 )
             )
-        })
+          })
+        // new transports.File({
+        //     filename: './log/all.log',
+            // format: format.combine(
+            //     format.printf(
+            //         info =>
+            //         `${info.timestamp} ${info.level}: ${info.message}`
+            //     )
+            // )
+        // })
     ]
 };
 
