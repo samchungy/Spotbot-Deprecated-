@@ -159,12 +159,12 @@ async function settings(trigger_id, response_url){
               },
               {
                 "type": "text",
-                "label": "Votes needed to Skip",
+                "label": "Additional votes needed to Skip",
                 "name": "skip_votes",
                 "placeholder" : "3",
                 "value": `${skip_votes}`,
                 "subtype" : "number",
-                "hint": "The number of votes needed to skip a song. Integers only"
+                "hint": "The number of additional votes needed to skip a song. Integers only"
               }
             ]
           };

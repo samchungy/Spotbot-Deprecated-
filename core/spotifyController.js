@@ -425,11 +425,18 @@ async function skip(slack_user, response_url){
                 await slack.sendEphemeralReply(":information_source: There is already a vote to skip this song.", null, response_url);
                 return;    
             }
-            tracks.setSkip(current_track.body.item.uri, current_track.body.item.name, current_track.body.item.artists[0].name, [slack_user]);
-            console.log(tracks.getSkip());
-            await slack.sendReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${slack_user}> has requested to skip ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}. `, 
-                [skip_attachment([slack_user], parseInt(skip_votes)-1, current_track.body.item.uri)], response_url);
-            return;
+            if (skip_votes == 0){
+                await spotify_player.skip();
+                await slack.sendDeleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was skipped by: <@${slack_user}>`, null, response_url);
+                return;
+            }
+            else{
+                tracks.setSkip(current_track.body.item.uri, current_track.body.item.name, current_track.body.item.artists[0].name, [slack_user]);
+                await slack.sendReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${slack_user}> has requested to skip ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}. `, 
+                    [skip_attachment([slack_user], parseInt(skip_votes), current_track.body.item.uri)], response_url);
+                return;
+            }
+
         }
     } catch (error) {
         logger.error(`Spotify failed to skip ${error}`);
