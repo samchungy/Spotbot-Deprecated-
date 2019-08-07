@@ -122,13 +122,19 @@ function setBlacklist(uri, artist, name){
     });
 }
 
-function getBlacklist(){
+function getAllBlacklist(){
     var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
     return blacklist.find();
 }
 
+function getBlacklist(uri){
+    var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
+    return blacklist.findOne( uri: uri );
+}
+
 module.exports = {
     clearSearches,
+    getAllBlacklist,
     getBlacklist,
     getCurrent,
     getHistory,
