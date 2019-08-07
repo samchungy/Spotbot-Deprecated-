@@ -141,6 +141,13 @@ function dialogOption(value, label){
     }
 }
 
+function selectOption(value, text){
+    return {
+        "text": text,
+        "value": value
+    }
+}
+
 function slackAttachment(text, callback_id, fallback, action_text, action_name, action_value){
     return {
         "text" : text,
@@ -258,6 +265,7 @@ module.exports = {
     trackToBlacklistAttachment,
     slackAttachment,
     selectAttachment,
+    selectOption,
     sendDeleteReply,
     sendDialog,
     sendEphemeralReply,

@@ -577,9 +577,14 @@ async function blacklistCurrent(slack_user, response_url){
             await slack.sendEphemeralReply(":information_source: Spotify is currently not playing", null, response_url);
             return;
         }
-        tracks.setBlacklist(current_track.body.item.uri, current_track.body.item.artists[0].name, current_track.body.item.name);
-        await slack.sendReply(`:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was blacklisted by <@${slack_user}>`, null, response_url);
-        return;
+        if (tracks.getBlacklist(current_track.body.item.uri) != null){
+            tracks.setBlacklist(current_track.body.item.uri, current_track.body.item.artists[0].name, current_track.body.item.name);
+            await slack.sendReply(`:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was blacklisted by <@${slack_user}>`, null, response_url);
+            return;
+        } else {
+            await slack.sendReply(`:interrobang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} is already blacklisted.`, null, response_url);
+            return;
+        }
 
     } catch (error) {
         logger.error(`Blacklist current failed ${JSON.stringify(error)}`);
@@ -608,20 +613,25 @@ async function blacklistFind(query, trigger_id, response_url){
     return;
 }
 
-async function addSongToBlacklist(trigger_id, track_uri, slack_user){
+async function addSongToBlacklist(trigger_id, track_uri, slack_user, response_url){
     try {
         var channel_id = spotify_config.getChannel();
         var track_id = track_uri.match(/[^:]+$/)[0];
         let track = await spotify_player.getTrack(track_id);
         var name = _.get(track, 'body.name');
         var artist = _.get(track, 'body.artists[0].name');
-        tracks.setBlacklist(track_uri, artist, name);
-        var history = tracks.getSearch(trigger_id);
-        if (history != null) {
-            tracks.deleteSearch(history);
+        if (tracks.getBlacklist(track.body.uri) != null){
+            tracks.setBlacklist(track_uri, artist, name);
+            var history = tracks.getSearch(trigger_id);
+            if (history != null) {
+                tracks.deleteSearch(history);
+            }
+            await slack.post(channel_id, `:bangbang: ${name} - ${artist} was blacklisted by <@${slack_user}>`);
+            return;
+        } else {
+            await slack.post(channel_id, `:interrobang: ${name} - ${artist} is already blacklisted.`);
         }
-        await slack.post(channel_id, `:bangbang: ${name} - ${artist} was blacklisted by <@${slack_user}>`);
-        return;
+
         
     } catch (error) {
         logger.error(`Add Song to Blacklist failed ${JSON.stringify(error)}`);
@@ -630,8 +640,15 @@ async function addSongToBlacklist(trigger_id, track_uri, slack_user){
 
 async function listBlacklist(response_url){
     try{
-        var blacklist = tracks.getBlacklist();
-        logger.info(`BLACKLIST: ${JSON.stringify(blacklist)}`);
+        let blacklist = tracks.getAllBlacklist();
+        let blacklist_sorted  = _.orderBy(blacklist, ['artist'],['asc']);
+        var options = [];
+        for (let track of blacklist_sorted){
+           options.push(slack.selectOption(track.uri, `${track.artist} - ${track.name}`));
+        }
+        await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", 
+            [slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, `Remove Track`, options)], response_url);
+        return;
     } catch (error) {
         logger.error(`List blacklist failed ${JSON.stringify(error)}`);
     }
