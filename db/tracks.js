@@ -129,7 +129,7 @@ function getAllBlacklist(){
 
 function getBlacklist(uri){
     var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
-    return blacklist.findOne( uri: uri );
+    return blacklist.findOne( {uri: uri} );
 }
 
 module.exports = {
