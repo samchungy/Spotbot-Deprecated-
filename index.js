@@ -193,7 +193,7 @@ app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySe
     await spotifyController.currentTrack(req.body.response_url);
   }
   else if (req.body.text == "playlist"){
-    res.send(slack.ack);
+    res.send(slack.ack());
     await spotifyController.currentPlaylist(req.body.response_url);
   }
 });
@@ -201,15 +201,15 @@ app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySe
 app.post('/blacklist',slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, slackAuth.isAdmin, async (req, res)=> {
   logger.info("Blacklist triggered");
   if (req.body.text == "current" || req.body.text == ""){
-    res.send(slack.ack);
-    await spotifyController.blacklistCurrent(req.body.user_id, req.body.response_url);
+    res.send(slack.ack());
+    await spotifyController.blacklistCurrent(req.body.trigger_id, req.body.response_url, req.body.user_id, req.body.response_url);
   }
   else if (req.body.text == "remove"){
-    res.send(slack.ack);
+    res.send(slack.ack());
     await spotifyController.listBlacklist(req.body.user_id, req.body.response_url);
   }
   else {
-    res.send(slack.ack);
+    res.send(slack.ack());
     await spotifyController.blacklistFind(req.body.text, req.body.response_url);
   }
 });
