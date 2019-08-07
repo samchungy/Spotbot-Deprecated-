@@ -68,7 +68,35 @@ function trackToSlackAttachment(track, trigger_id) {
             }]
         };
     } catch (error) {
-        logger.error(`Artist slack attachment fail ${error}`);
+        logger.error(`Artist slack attachment fail ${JSON.stringify(error)}`);
+    }
+}
+
+function trackToBlacklistAttachment(track, trigger_id) {
+
+    try {
+        var image = "";
+        if (track.album.images){
+            image = track.album.images[0].url;
+        }
+        return {
+            "color": "#36a64f",
+            "title": track.name,
+            "title_link": track.external_urls.spotify,
+            "text": `:studio_microphone: *Artist* ${track.artists[0].name}\n\n:cd: *Album* ${track.album.name}`,
+            "mrkdwn_in": ["text"],
+            "thumb_url": `${image}`,
+            "callback_id": trigger_id,
+            "actions": [{
+                "text": "Add to blacklist",
+                "type": "button",
+                "style": "primary",
+                "name": CONSTANTS.BLACKLIST,
+                "value": track.uri
+            }]
+        };
+    } catch (error) {
+        logger.error(`Blacklist slack attachment fail ${JSON.stringify(error)}`);
     }
 }
 
@@ -101,7 +129,7 @@ function artistToSlackAttachment(artist, trigger_id) {
             }]
         };
     } catch (error) {
-        logger.error(`Artist slack attachment fail ${error}`);
+        logger.error(`Artist slack attachment fail ${JSON.stringify(error)}`);
     }
 
 }
@@ -143,7 +171,7 @@ async function send(message, response_url){
     try {
         await axios.post(response_url, message);
     } catch (error) {
-        logger.error(`Send to slack failed ${error}`);
+        logger.error(`Send to slack failed ${JSON.stringify(error)}`);
         throw Error(error);
     }
 }
@@ -154,7 +182,7 @@ async function sendDialog(params){
         return axios.post(`https://slack.com/api/dialog.open`, qs.stringify(params));
 
     } catch (error) {
-        logger.error(`Send dialog failed ${error}`)
+        logger.error(`Send dialog failed ${JSON.stringify(error)}`)
     }
 }
 
@@ -167,7 +195,7 @@ async function post(channel_id, text){
         }
         await axios.post(`https://slack.com/api/chat.postMessage`, qs.stringify(params));
     } catch (error) {
-        logger.error(`Failed to post to slack ${error}`);
+        logger.error(`Failed to post to slack ${JSON.stringify(error)}`);
         throw Error(error);
     }
 }
@@ -183,7 +211,7 @@ async function postEphemeral(channel_id, user, text){
         return axios.post(`https://slack.com/api/chat.postEphemeral`, qs.stringify(params));
     }
     catch(error){
-        logger.error(`Failed to ephemeral post to slack ${error}`);
+        logger.error(`Failed to ephemeral post to slack ${JSON.stringify(error)}`);
         throw Error(error);
     }
     
@@ -193,7 +221,22 @@ async function postReply(body, response_url){
     try {
         return await axios.post(response_url, body);
     } catch (error) {
-        logger.error(`Slack post reply failed ${error}`);
+        logger.error(`Slack post reply failed ${JSON.stringify(error)}`);
+    }
+}
+
+async function selectAttachment(fallback, callback_id, action_name, action_text, options){
+    return {
+        "fallback" : fallback,
+        "callback_id" : callback_id,
+        "actions" : [
+            {
+                "name": action_name,
+                "text": action_text,
+                "type": select,
+                "options" : options
+            }
+        ]
     }
 }
 
@@ -212,7 +255,9 @@ module.exports = {
     postReply,
     postEphemeral,
     trackToSlackAttachment,
+    trackToBlacklistAttachment,
     slackAttachment,
+    selectAttachment,
     sendDeleteReply,
     sendDialog,
     sendEphemeralReply,

@@ -34,6 +34,7 @@ function initialiseTracks() {
     var history = db2.getCollection(CONSTANTS.HISTORY);
     var skip = db2.getCollection(CONSTANTS.SKIP);
     var current_track = db2.getCollection(CONSTANTS.CURRENT_TRACK);
+    var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
 
     if (searches === null || searches.count() == 0) {
         db2.addCollection(CONSTANTS.SEARCH, {
@@ -55,7 +56,11 @@ function initialiseTracks() {
             unique: CONSTANTS.CURRENT_TRACK
         });
     }
-
+    if (blacklist === null || blacklist.count() == 0) {
+        db2.addCollection(CONSTANTS.BLACKLIST, {
+            unique: CONSTANTS.BLACKLIST
+        });
+    }
 }
 
 function wait(ms){

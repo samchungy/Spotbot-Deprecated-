@@ -29,5 +29,6 @@ module.exports = {
     CURRENT_TRACK : "current_track",
     AFRICA: "spotify:track:2374M0fQpWi3dLnB54qaLX",
     RESET: "reset",
-    ARTIST: "artist"
+    ARTIST: "artist",
+    BLACKLIST : "blacklist"
 }

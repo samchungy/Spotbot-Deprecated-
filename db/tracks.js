@@ -113,13 +113,29 @@ function clearSearches(){
     searches.clear( {removeIndices: true} );
 }
 
+function setBlacklist(uri, artist, name){
+    var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
+    blacklist.insert({
+        uri: uri,
+        name: name,
+        artist: artist
+    });
+}
+
+function getBlacklist(){
+    var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
+    return blacklist.find();
+}
+
 module.exports = {
     clearSearches,
+    getBlacklist,
     getCurrent,
     getHistory,
     getSearch,
     getSkip,
     setArtist,
+    setBlacklist,
     setCurrent,
     setHistory,
     setSkip,

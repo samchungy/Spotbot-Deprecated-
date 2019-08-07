@@ -31,6 +31,11 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
       res.send();
       await spotifyController.getThreeTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
     }
+    if (payload.actions[0].name == CONSTANTS.SEE_MORE_BLACKLIST){
+      logger.info("See more blacklist action triggered");
+      res.send();
+      await spotifyController.getThreeBlacklistTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
+    }
     else if (payload.actions[0].name == CONSTANTS.SEE_MORE_ARTISTS){
       logger.info("See more artists action triggered");
       res.send();
@@ -54,6 +59,10 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
     else if (payload.actions[0].name == CONSTANTS.ARTIST){
       logger.info("See more artists triggered");
       await spotifyController.artistToFindTrack(payload.callback_id, payload.actions[0].value, payload.response_url)
+    }
+    else if (payload.actions[0].name == CONSTANTS.BLACKLIST){
+      logger.info("See more blacklist triggered");
+      await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.response_url)
     }
   }
   else{
@@ -186,6 +195,22 @@ app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySe
   else if (req.body.text == "playlist"){
     res.send(slack.ack);
     await spotifyController.currentPlaylist(req.body.response_url);
+  }
+});
+
+app.post('/blacklist',slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, slackAuth.isAdmin, async (req, res)=> {
+  logger.info("Blacklist triggered");
+  if (req.body.text == "current" || req.body.text == ""){
+    res.send(slack.ack);
+    await spotifyController.blacklistCurrent(req.body.user_id, req.body.response_url);
+  }
+  else if (req.body.text == "remove"){
+    res.send(slack.ack);
+    await spotifyController.listBlacklist(req.body.user_id, req.body.response_url);
+  }
+  else {
+    res.send(slack.ack);
+    await spotifyController.blacklistFind(req.body.text, req.body.response_url);
   }
 });
 
