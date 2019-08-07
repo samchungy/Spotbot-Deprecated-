@@ -202,7 +202,7 @@ app.post('/blacklist',slackAuth.signVerification, spotifyAuth.isAuthed, spotifyS
   logger.info("Blacklist triggered");
   if (req.body.text == "current" || req.body.text == ""){
     res.send(slack.ack());
-    await spotifyController.blacklistCurrent(req.body.trigger_id, req.body.response_url, req.body.user_id, req.body.response_url);
+    await spotifyController.blacklistCurrent(req.body.user_id, req.body.response_url);
   }
   else if (req.body.text == "remove"){
     res.send(slack.ack());
