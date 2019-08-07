@@ -631,7 +631,7 @@ async function addSongToBlacklist(trigger_id, track_uri, slack_user){
 async function listBlacklist(response_url){
     try{
         var blacklist = tracks.getBlacklist();
-        console.log(blacklist);
+        logger.info(`BLACKLIST: ${JSON.stringify(blacklist)}`);
     } catch (error) {
         logger.error(`List blacklist failed ${JSON.stringify(error)}`);
     }
