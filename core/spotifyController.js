@@ -82,7 +82,7 @@ async function addSongToPlaylist(trigger_id, track_uri, slack_user) {
         await slack.post(channel_id, text);
         return;
     } catch (error) {
-        logger.error(`Add Song to Playlist failed ${error}`);
+        logger.error(`Add Song to Playlist failed ${JSON.stringify(error)}`);
     }
 }
 
@@ -112,7 +112,7 @@ async function setBackToPlaylist(playlist_id, tracks, current_track){
             }
         }
     } catch (error) {
-        logger.info(`Get back to playlist failed ${error}`);
+        logger.info(`Get back to playlist failed ${JSON.stringify(error)}`);
         throw Error(error);
     }
 }
@@ -152,7 +152,7 @@ async function play(response_url) {
 
         }
     } catch (error) {
-        logger.error(`Spotify failed to play ${error}`);
+        logger.error(`Spotify failed to play ${JSON.stringify(error)}`);
     }
     await slack.sendReply(":arrow_forward: Spotify failed to play.", null, response_url);
     return;
@@ -185,7 +185,7 @@ async function pause(response_url) {
             return;
         }
     } catch (error) {
-        logger.error(`Spotify failed to pause ${error}`);
+        logger.error(`Spotify failed to pause ${JSON.stringify(error)}`);
     }
     await slack.sendReply(":warning: Spotify failed to pause.", null, response_url);
     return;
@@ -227,11 +227,53 @@ async function getThreeTracks(trigger_id, pagenum, response_url) {
         await slack.sendEphemeralReply(`:mag: Are these the tracks you were looking for?`, slack_attachments, response_url);
         return;
     } catch (error) {
-        logger.error(`Failed to get 3 more tracks ${error}`);
+        logger.error(`Failed to get 3 more tracks ${JSON.stringify(error)}`);
     }
     await slack.sendEphemeralReply(`Spotify failed to get 3 more tracks`, null, response_url);
     return;
 }
+
+/**
+ * Gets up to 3 tracks from our local db
+ * @param {string} trigger_id Slack trigger id
+ */
+async function getThreeBlacklistTracks(trigger_id, pagenum, response_url) {
+    try {
+        var search = tracks.getSearch(trigger_id);
+        // Searches expire after X time.
+        if (search == null) {
+            await slack.sendEphemeralReply(`:slightly_frowning_face: I'm sorry, your search expired. Please try another one.`, null, response_url);
+            return;
+        }
+        // Our search has hit the end, remove it.
+        if (_.get(search, 'tracks.length') == 0) {
+            tracks.deleteSearch(search);
+            await slack.sendEphemeralReply(`:information_source: No more tracks. Try another search.`, null, response_url);
+            return;
+        }
+        // Make sure it is an int.
+        pagenum = parseInt(pagenum);
+
+        // Get 3 tracks of the search
+        var current_tracks = search.tracks.splice(0, 3);
+        var slack_attachments = []
+        for (let track of current_tracks) {
+            slack_attachments.push(slack.trackToBlacklistAttachment(track, trigger_id));
+        }
+        // Update DB
+        tracks.updateSearch(search);
+
+        slack_attachments.push(slack.slackAttachment(`Page: ${pagenum}/${search.total_pages}`, trigger_id,
+            "See more tracks", "See more tracks", CONSTANTS.SEE_MORE_TRACKS, pagenum+1));
+        await slack.sendEphemeralReply(`:mag: Are these the tracks you were looking for?`, slack_attachments, response_url);
+        return;
+    } catch (error) {
+        logger.error(`Failed to get 3 more tracks ${JSON.stringify(error)}`);
+    }
+    await slack.sendEphemeralReply(`Spotify failed to get 3 more tracks`, null, response_url);
+    return;
+}
+
 
 /**
  * Finds songs based on a query on Spotify
@@ -253,7 +295,7 @@ async function find(query, trigger_id, response_url) {
             return;
         }
     } catch (error) {
-        logger.error(`Spotify failed to find tracks ${error}`);
+        logger.error(`Spotify failed to find tracks ${JSON.stringify(error)}`);
     }
     await slack.sendEphemeralReply(`:slightly_frowning_face: Finding tracks failed.`, response_url);
     return;
@@ -275,7 +317,7 @@ async function findArtist(query, trigger_id, response_url) {
             return;
         }
     } catch (error) {
-        logger.error(`Find artist failed ${error}`);
+        logger.error(`Find artist failed ${JSON.stringify(error)}`);
     }
 }
 
@@ -310,7 +352,7 @@ async function getThreeArtists(trigger_id, pagenum, response_url) {
         await slack.sendEphemeralReply(`:mag: Are these the tracks you were looking for?`, slack_attachments, response_url);
         return;
     } catch (error) {
-        logger.error(`Failed to get 3 more artists ${error}`);
+        logger.error(`Failed to get 3 more artists ${JSON.stringify(error)}`);
     }
     await slack.sendEphemeralReply(`Spotify failed to get 3 more artists`, null, response_url);
     return;
@@ -324,7 +366,7 @@ async function artistToFindTrack(trigger_id, query, response_url){
         }
         await find(query, trigger_id, response_url);
     } catch (error) {
-        logger.error(`Artist to find track failed ${error}`);
+        logger.error(`Artist to find track failed ${JSON.stringify(error)}`);
     }
 
 }
@@ -371,7 +413,7 @@ async function whom(response_url) {
             }
         }
     } catch (error) {
-        logger.error(`Whom failed ${error}`);
+        logger.error(`Whom failed ${JSON.stringify(error)}`);
     }
     // await slack.sendReply(`Whom called failed`, null, response_url);
     return;
@@ -439,7 +481,7 @@ async function skip(slack_user, response_url){
 
         }
     } catch (error) {
-        logger.error(`Spotify failed to skip ${error}`);
+        logger.error(`Spotify failed to skip ${JSON.stringify(error)}`);
     }
     await slack.sendEphemeralReply("Failed to process skip command", null, response_url);
 }
@@ -473,7 +515,7 @@ async function voteSkip(slack_user, track_uri, response_url){
     
         }
     } catch (error) {
-        logger.error(`Vote to skip failed ${error}`)
+        logger.error(`Vote to skip failed ${JSON.stringify(error)}`)
     }
 }
 
@@ -511,7 +553,7 @@ async function currentTrack(response_url){
             return;
         }
     } catch (error) {
-        logger.error(`Get current track failed ${error}`);
+        logger.error(`Get current track failed ${JSON.stringify(error)}`);
     }
 
 }
@@ -523,13 +565,84 @@ async function currentPlaylist(response_url){
         await slack.sendReply(`:notes: Currently playing from Spotify playlist: <${playlist_link}|${current_playlist}>`, null, response_url); 
         return;
     } catch (error) {
-        logger.error(`Get current playlist failed ${error}`);
+        logger.error(`Get current playlist failed ${JSON.stringify(error)}`);
     }
 
 }
 
+async function blacklistCurrent(slack_user, response_url){
+    try {
+        let current_track = await spotify_player.getPlayingTrack();
+        if (current_track.statusCode == 204){
+            await slack.sendEphemeralReply(":information_source: Spotify is currently not playing", null, response_url);
+            return;
+        }
+        tracks.setBlacklist(current_track.body.item.uri, current_track.body.item.artists[0].name, current_track.body.item.name);
+        await slack.sendReply(`:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was blacklisted by <@${slack_user}>`, null, response_url);
+        return;
+
+    } catch (error) {
+        logger.error(`Blacklist current failed ${JSON.stringify(error)}`);
+    }
+}
+
+async function blacklistFind(query, trigger_id, response_url){
+    try {
+        logger.info(`Find tracks for query "${query}" triggered.`);
+        let search_results = await spotify_player.getSearchTracks(query);
+        let search_tracks = _.get(search_results, 'body.tracks.items');
+        if (search_tracks.length == 0) {
+            //No Tracks found
+            await slack.sendEphemeralReply(`:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?`, response_url);
+            return;
+        } else {
+            // Store in our db
+            tracks.setSearch(trigger_id, search_tracks, Math.ceil(search_tracks.length / 3));
+            await getThreeBlacklistTracks(trigger_id, 1, response_url);
+            return;
+        }
+    } catch (error) {
+        logger.error(`Spotify failed to find tracks for blacklist ${JSON.stringify(error)}`);
+    }
+    await slack.sendEphemeralReply(`:slightly_frowning_face: Finding tracks failed.`, response_url);
+    return;
+}
+
+async function addSongToBlacklist(trigger_id, track_uri, slack_user){
+    try {
+        var channel_id = spotify_config.getChannel();
+        var track_id = track_uri.match(/[^:]+$/)[0];
+        let track = await spotify_player.getTrack(track_id);
+        var name = _.get(track, 'body.name');
+        var artist = _.get(track, 'body.artists[0].name');
+        tracks.setBlacklist(track_uri, artist, name);
+        var history = tracks.getSearch(trigger_id);
+        if (history != null) {
+            tracks.deleteSearch(history);
+        }
+        await slack.post(channel_id, `:bangbang: ${name} - ${artist} was blacklisted by <@${slack_user}>`);
+        return;
+        
+    } catch (error) {
+        logger.error(`Add Song to Blacklist failed ${JSON.stringify(error)}`);
+    }
+}
+
+async function listBlacklist(response_url){
+    try{
+        var blacklist = tracks.getBlacklist();
+        console.log(blacklist);
+    } catch (error) {
+        logger.error(`List blacklist failed ${JSON.stringify(error)}`);
+    }
+}
+
 module.exports = {
+    addSongToBlacklist,
     artistToFindTrack,
+    blacklistCurrent,
+    blacklistFind,
+    listBlacklist,
     currentPlaylist,
     currentTrack,
     findArtist,
@@ -537,6 +650,7 @@ module.exports = {
     pause,
     find,
     getThreeArtists,
+    getThreeBlacklistTracks,
     getThreeTracks,
     addSongToPlaylist,
     whom,
