@@ -206,7 +206,7 @@ app.post('/blacklist',slackAuth.signVerification, spotifyAuth.isAuthed, spotifyS
   }
   else if (req.body.text == "remove"){
     res.send(slack.ack());
-    await spotifyController.listBlacklist(req.body.user_id, req.body.response_url);
+    await spotifyController.listBlacklist(req.body.response_url);
   }
   else {
     res.send(slack.ack());
