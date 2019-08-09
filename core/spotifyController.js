@@ -641,17 +641,13 @@ async function addSongToBlacklist(trigger_id, track_uri, slack_user, response_ur
 async function listBlacklist(response_url){
     try{
         let blacklist = tracks.getAllBlacklist();
-        logger.info(JSON.stringify(blacklist));
         let blacklist_sorted  = _.orderBy(blacklist, ['artist'],['asc']);
-        logger.info(JSON.stringify(blacklist_sorted));
         var options = [];
         for (let track of blacklist_sorted){
            options.push(slack.selectOption(track.uri, `${track.artist} - ${track.name}`));
         }
-        logger.info(JSON.stringify(options));
-        logger.info(`Info ${JSON.stringify([slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, `Remove Track`, options)])}`);
-        await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", 
-            [slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, `Remove Track`, options)], response_url);
+        var attachment = slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, `Remove Track`, options);
+        await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", [attachment], response_url);
         return;
     } catch (error) {
         logger.error(`List blacklist failed ${JSON.stringify(error)}`);
