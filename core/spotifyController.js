@@ -577,7 +577,7 @@ async function blacklistCurrent(slack_user, response_url){
             await slack.sendEphemeralReply(":information_source: Spotify is currently not playing", null, response_url);
             return;
         }
-        if (tracks.getBlacklist(current_track.body.item.uri) != null){
+        if (tracks.getBlacklist(current_track.body.item.uri) == null){
             tracks.setBlacklist(current_track.body.item.uri, current_track.body.item.artists[0].name, current_track.body.item.name);
             await slack.sendReply(`:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was blacklisted by <@${slack_user}>`, null, response_url);
             return;
