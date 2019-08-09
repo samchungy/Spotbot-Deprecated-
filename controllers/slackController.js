@@ -240,7 +240,7 @@ function selectAttachment(fallback, callback_id, action_name, action_text, optio
             {
                 "name": action_name,
                 "text": action_text,
-                "type": select,
+                "type": "select",
                 "options" : options
             }
         ]
