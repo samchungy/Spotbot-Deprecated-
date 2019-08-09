@@ -28,11 +28,11 @@ const logConfiguration = {
     transports: [
         new transports.Console({
             format: format.combine(
-                format.colorize(),
                 errorStackTracerFormat(),
+                format.colorize(),
                 format.printf(
                     info =>
-                    `${info.timestamp} ${info.level}: ${info.message}`
+                    `${info.timestamp} ${info.level}: ${info.message} ${info.stack ? info.stack : ""}`
                 )
             )
         }),
@@ -43,10 +43,9 @@ const logConfiguration = {
             maxSize: '20m',
             maxFiles: '14d',
             format: format.combine(
-                errorStackTracerFormat(),
                 format.printf(
                     info =>
-                    `${info.timestamp} ${info.level}: ${info.message}`
+                    `${info.timestamp} ${info.level}: ${info.message} ${info.stack ? info.stack : ""}`
                 )
             )
           })
