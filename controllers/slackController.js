@@ -68,7 +68,7 @@ function trackToSlackAttachment(track, trigger_id) {
             }]
         };
     } catch (error) {
-        logger.error(`Artist slack attachment fail ${JSON.stringify(error)}`);
+        logger.error(`Artist slack attachment fail ${JSON.stringify(error)}`, error, error);
     }
 }
 
@@ -96,7 +96,7 @@ function trackToBlacklistAttachment(track, trigger_id) {
             }]
         };
     } catch (error) {
-        logger.error(`Blacklist slack attachment fail ${JSON.stringify(error)}`);
+        logger.error(`Blacklist slack attachment fail ${JSON.stringify(error)}`, error);
     }
 }
 
@@ -129,7 +129,7 @@ function artistToSlackAttachment(artist, trigger_id) {
             }]
         };
     } catch (error) {
-        logger.error(`Artist slack attachment fail ${JSON.stringify(error)}`);
+        logger.error(`Artist slack attachment fail ${JSON.stringify(error)}`, error);
     }
 
 }
@@ -178,7 +178,7 @@ async function send(message, response_url){
     try {
         await axios.post(response_url, message);
     } catch (error) {
-        logger.error(`Send to slack failed ${JSON.stringify(error)}`);
+        logger.error(`Send to slack failed ${JSON.stringify(error)}`, error);
         throw Error(error);
     }
 }
@@ -189,7 +189,7 @@ async function sendDialog(params){
         return axios.post(`https://slack.com/api/dialog.open`, qs.stringify(params));
 
     } catch (error) {
-        logger.error(`Send dialog failed ${JSON.stringify(error)}`)
+        logger.error(`Send dialog failed ${JSON.stringify(error)}`, error)
     }
 }
 
@@ -202,7 +202,7 @@ async function post(channel_id, text){
         }
         await axios.post(`https://slack.com/api/chat.postMessage`, qs.stringify(params));
     } catch (error) {
-        logger.error(`Failed to post to slack ${JSON.stringify(error)}`);
+        logger.error(`Failed to post to slack ${JSON.stringify(error)}`, error);
         throw Error(error);
     }
 }
@@ -218,7 +218,7 @@ async function postEphemeral(channel_id, user, text){
         return axios.post(`https://slack.com/api/chat.postEphemeral`, qs.stringify(params));
     }
     catch(error){
-        logger.error(`Failed to ephemeral post to slack ${JSON.stringify(error)}`);
+        logger.error(`Failed to ephemeral post to slack ${JSON.stringify(error)}`, error);
         throw Error(error);
     }
     
@@ -228,7 +228,7 @@ async function postReply(body, response_url){
     try {
         return await axios.post(response_url, body);
     } catch (error) {
-        logger.error(`Slack post reply failed ${JSON.stringify(error)}`);
+        logger.error(`Slack post reply failed ${JSON.stringify(error)}`, error);
     }
 }
 
