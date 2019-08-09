@@ -641,6 +641,7 @@ async function addSongToBlacklist(trigger_id, track_uri, slack_user, response_ur
 async function listBlacklist(response_url){
     try{
         let blacklist = tracks.getAllBlacklist();
+        logger.info(blacklist);
         let blacklist_sorted  = _.orderBy(blacklist, ['artist'],['asc']);
         var options = [];
         for (let track of blacklist_sorted){
