@@ -23,7 +23,7 @@ async function setup_auth(trigger_id, response_url, channel_id, url, user_name){
             [auth_attachment], response_url);
         return;
     } catch (error) {
-        logger.error(`Setting up auth failed ${error}`);
+        logger.error(`Setting up auth failed ${JSON.stringify(error)}`, error);
     }
 }
 
@@ -183,7 +183,7 @@ async function settings(trigger_id, response_url){
           }
     
     } catch(error){
-        logger.error(`Settings failed ${error}`);
+        logger.error(`Settings failed ${JSON.stringify(error)}`, error);
         slack.sendEphemeralReply("Settings call failed", null, response_url); 
 
     }
@@ -210,7 +210,7 @@ function clearSearchCronJob() {
             logger.info("Search cleared");
             tracks.clearSearches();
         } catch (error) {
-            logger.error(`Search clear Cron Job Failed ${error}`);
+            logger.error(`Search clear Cron Job Failed ${JSON.stringify(error)}`, error);
         }
     });
 }
@@ -233,7 +233,7 @@ function setNowPlaying() {
                 }
             }
         } catch (error) {
-            logger.error(`Now Playing Cron Job Failed ${error}`);
+            logger.error(`Now Playing Cron Job Failed ${JSON.stringify(error)}`, error);
         }
 
     });
@@ -319,7 +319,7 @@ async function verifySettings(submission, response_url){
         }
     
     } catch (error) {
-        logger.error(`Verifying settings failed ${error}`);
+        logger.error(`Verifying settings failed ${JSON.stringify(error)}`, error);
     }
 }
 
@@ -339,7 +339,7 @@ function addAdmin(slack_user, response_url){
         slack.sendEphemeralReply(`<${slack_user}> has been added as an admin.`, null, response_url);
         return;
     } catch (error) {
-        logger.error(`Adding admin failed ${error}`);
+        logger.error(`Adding admin failed ${JSON.stringify(error)}`, error);
     }
 }
 
@@ -364,7 +364,7 @@ function removeAdmin(slack_user, requester, response_url){
             slack.sendEphemeralReply(`<${slack_user}> is not an admin.`, null, response_url);
         }
     } catch (error) {
-        logger.error(`Removing admin failed ${error}`);
+        logger.error(`Removing admin failed ${JSON.stringify(error)}`, error);
     }
 
 }
@@ -383,7 +383,7 @@ async function isSettingsSet(req, res, next){
             next();
         }
     } catch (error) {
-        logger.error(`IsAuthed failed ${error}`);
+        logger.error(`IsAuthed failed ${JSON.stringify(error)}`, error);
     }
 }
 

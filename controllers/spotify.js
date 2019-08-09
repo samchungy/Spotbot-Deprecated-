@@ -22,7 +22,7 @@ async function authorizationCodeGrant(code){
         updateTokens(tokens.body['access_token'], tokens.body['refresh_token']);
     }
     catch(error){
-        logger.error(`Auth Code Grant failed ${error}`);
+        logger.error(`Auth Code Grant failed ${JSON.stringify(error)}`, error);
         throw Error(error);
     }
 }
@@ -37,7 +37,7 @@ async function getAuthorizeURL(trigger_id, url){
         let authorize_url = await spotifyApi.createAuthorizeURL(CONSTANTS.SCOPES, trigger_id);
         return authorize_url;
     } catch (error) {
-        logger.error(`Get AUTH url failed ${error}`);
+        logger.error(`Get AUTH url failed ${JSON.stringify(error)}`, error);
         throw Error(error);
     }
 }
@@ -63,7 +63,7 @@ async function renewAccessToken(){
         let access_token = await spotifyApi.refreshAccessToken();
         spotifyApi.setAccessToken(access_token.body['access_token']);
     } catch (error) {
-        logger.error(`Remnewing Access Token Failed ${error}`);
+        logger.error(`Remnewing Access Token Failed ${JSON.stringify(error)}`, error);
         throw Error(error);
     }
 }

@@ -44,7 +44,7 @@ async function authenticate(trigger_id, response_url, channel_id, url){
         let authorizeURL = await spotify.getAuthorizeURL(trigger_id, url_redirect);
         return authorizeURL;
     } catch (error) {
-        logger.error(`Authentication failed ${JSON.stringify(error)}`);
+        logger.error(`Authentication failed ${JSON.stringify(error)}`, error);
     }
 
 }
@@ -84,7 +84,7 @@ async function getAccessToken(code, state) {
             return `slack://channel?id=${auth.channel_id}&team=${auth.team_id}`;
         }
     } catch (error) {
-        logger.error(`Auth grant failed ${JSON.stringify(error)}`);
+        logger.error(`Auth grant failed ${JSON.stringify(error)}`, error);
     }
     
 }
@@ -109,7 +109,7 @@ async function isAuthed(req, res, next){
             next();
         }
     } catch (error) {
-        logger.error(`IsAuthed failed ${JSON.stringify(error)}`);
+        logger.error(`IsAuthed failed ${JSON.stringify(error)}`, error);
     }
 
 }
@@ -123,7 +123,7 @@ function isAuthed2(response_url){
             return true;
         }
     } catch (error) {
-        logger.error(`IsAuthed2 failed ${JSON.stringify(error)}`);
+        logger.error(`IsAuthed2 failed ${JSON.stringify(error)}`, error);
     }
 }
 
@@ -140,7 +140,7 @@ function setRefreshTokenCronJob() {
             logger.info("Token refreshed");
             refreshToken();
         } catch (error) {
-            logger.error(`Refresh Token Cron Job Failed ${JSON.stringify(error)}`);
+            logger.error(`Refresh Token Cron Job Failed ${JSON.stringify(error)}`, error);
         }
 
     });
@@ -154,7 +154,7 @@ async function refreshToken() {
         await spotify.renewAccessToken();
         updateAccess();
     } catch (error) {
-        logger.error(`Refreshing token failed ${JSON.stringify(error)}`);
+        logger.error(`Refreshing token failed ${JSON.stringify(error)}`, error);
     }
 
 }
