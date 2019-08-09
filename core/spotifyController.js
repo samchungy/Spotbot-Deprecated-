@@ -651,6 +651,7 @@ async function listBlacklist(response_url){
         return;
     } catch (error) {
         logger.error(`List blacklist failed ${JSON.stringify(error)}`);
+        console.error(error);
     }
 }
 
