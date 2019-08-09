@@ -650,7 +650,7 @@ async function listBlacklist(response_url){
         await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", [attachment], response_url);
         return;
     } catch (error) {
-        logger.error(`List blacklist failed ${JSON.stringify(error)}`);
+        logger.error(`List blacklist failed ${JSON.stringify(error)}`, error);
         console.error(error);
     }
 }
