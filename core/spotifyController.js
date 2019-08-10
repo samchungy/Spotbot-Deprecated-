@@ -598,7 +598,7 @@ async function blacklistFind(query, trigger_id, response_url){
         let search_tracks = _.get(search_results, 'body.tracks.items');
         if (search_tracks.length == 0) {
             //No Tracks found
-            await slack.sendEphemeralReply(`:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?`, response_url);
+            await slack.sendEphemeralReply(`:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?`,null,  response_url);
             return;
         } else {
             // Store in our db
@@ -609,7 +609,7 @@ async function blacklistFind(query, trigger_id, response_url){
     } catch (error) {
         logger.error(`Spotify failed to find tracks for blacklist`, error);
     }
-    await slack.sendEphemeralReply(`:slightly_frowning_face: Finding tracks failed.`, response_url);
+    await slack.sendEphemeralReply(`:slightly_frowning_face: Finding tracks failed.`, null, response_url);
     return;
 }
 
