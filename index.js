@@ -62,6 +62,7 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
     }
     else if (payload.actions[0].name == CONSTANTS.BLACKLIST){
       logger.info("add to blacklist triggered");
+      res.send(slack.deleteReply("ephemeral", ""));
       await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.user.id)
     }
     else if (payload.actions[0].name == CONSTANTS.BLACKLIST_REMOVE){
