@@ -5,6 +5,14 @@ const env = process.env.NODE_ENV || 'development';
 const fs = require('fs');
 const path = require('path');
 
+
+const errorStackTracerFormat = winston.format(info => {
+    if (info.meta && info.meta instanceof Error) {
+        info.message = `${info.message} ${info.meta.stack}`;
+    }
+    return info;
+});
+
 // Logger configuration
 const logConfiguration = {
     // change level if in dev environment versus production
@@ -20,10 +28,11 @@ const logConfiguration = {
     transports: [
         new transports.Console({
             format: format.combine(
+                errorStackTracerFormat(),
                 format.colorize(),
                 format.printf(
                     info =>
-                    `${info.timestamp} ${info.level}: ${info.message}`
+                    `${info.timestamp} ${info.level}: ${info.message} ${info.stack ? info.stack : ""}`
                 )
             )
         }),
@@ -36,7 +45,7 @@ const logConfiguration = {
             format: format.combine(
                 format.printf(
                     info =>
-                    `${info.timestamp} ${info.level}: ${info.message}`
+                    `${info.timestamp} ${info.level}: ${info.message} ${info.stack ? info.stack : ""}`
                 )
             )
           })

@@ -64,6 +64,10 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
       logger.info("See more blacklist triggered");
       await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.response_url)
     }
+    else if (payload.actions[0].name == CONSTANTS.BLACKLIST_REMOVE){
+      logger.info("Remove from blacklist triggered");
+      await spotifyController.removeFromBlacklist(payload.actions[0].selected_options[0].value, payload.response_url)
+    }
   }
   else{
     if (payload.callback_id == CONSTANTS.SPOTIFY_CONFIG){
@@ -79,6 +83,11 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
     }
   }
 });
+
+app.post('/options', slackAuth.signVerification, async (req, res) => {
+  logger.info("Option triggered");
+  res.send(await spotifySetup.getDevices());
+})
 
 app.post('/setup', slackAuth.signVerification, slackAuth.isAdmin, async (req, res) => {
 if (req.body.text == "auth") {
@@ -125,13 +134,13 @@ app.get('/auth', async (req, res) => {
   }
 });
 
-app.post('/play', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet,  async (req, res) => {
+app.post('/play', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
   logger.info("Play Triggered");
   res.send(slack.ack());
   await spotifyController.play(req.body.response_url);
 });
 
-app.post('/pause', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
+app.post('/pause', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
   logger.info("Pause Triggered");
   res.send(slack.ack());
   await spotifyController.pause(req.body.response_url);
@@ -181,12 +190,7 @@ app.post('/reset', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetu
   await spotifyController.resetRequest(req.body.response_url);
 })
 
-app.post('/options', slackAuth.signVerification, async (req, res) => {
-  logger.info("Option triggered");
-  res.send(await spotifySetup.getDevices());
-})
-
-app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, async (req, res) => {
+app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, spotifySetup.isInChannel, async (req, res) => {
   logger.info("Current triggered");
   if (req.body.text == "track" || req.body.text == ""){
     res.send(slack.ack());
@@ -198,14 +202,14 @@ app.post('/current', slackAuth.signVerification, spotifyAuth.isAuthed, spotifySe
   }
 });
 
-app.post('/blacklist',slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, slackAuth.isAdmin, async (req, res)=> {
+app.post('/blacklist',slackAuth.signVerification, spotifyAuth.isAuthed, spotifySetup.isSettingsSet, slackAuth.isAdmin, spotifySetup.isInChannel, async (req, res)=> {
   logger.info("Blacklist triggered");
   if (req.body.text == "current" || req.body.text == ""){
     res.send(slack.ack());
     await spotifyController.blacklistCurrent(req.body.user_id, req.body.response_url);
   }
   else if (req.body.text == "remove"){
-    res.send(slack.ack());
+    res.send();
     await spotifyController.listBlacklist(req.body.response_url);
   }
   else {
