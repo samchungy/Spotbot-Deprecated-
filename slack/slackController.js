@@ -1,4 +1,5 @@
 const {slackFormatter} = require('./slackFormatter');
+const logger = require('../../log/winston');
 
 function ack(req, res, next){
     try {
