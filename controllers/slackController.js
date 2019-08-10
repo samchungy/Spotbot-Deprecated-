@@ -24,6 +24,7 @@ async function sendEphemeralReply(text, attachments, response_url){
     try {
         await postReply(reply("ephemeral", text, attachments), response_url);
     } catch (error) {
+        throw Error(error);
     }
 }
 async function sendReply(text, attachments, response_url){
