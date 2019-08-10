@@ -646,11 +646,26 @@ async function listBlacklist(response_url){
         for (let track of blacklist_sorted){
            options.push(slack.selectOption(track.uri, `${track.artist} - ${track.name}`));
         }
-        var attachment = slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, options);
+        var attachment = slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, null, options);
         await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", [attachment], response_url);
         return;
     } catch (error) {
         logger.error(`List blacklist failed ${JSON.stringify(error)}`, error, error);
+        console.error(error);
+    }
+}
+
+async function removeFromBlacklist(track_uri,response_url){
+    try {
+        let blacklist = tracks.getBlacklist(track_uri);
+        if (blacklist != null){
+            var attachment = slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, `:heavy_check_mark: Track removed`, null);
+            await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", [attachment], response_url);
+        } else {
+            await slack.sendEphemeralReply("That track has already been removed.", null, response_url);
+        }
+    } catch (error) {
+        logger.error(`Remove from blacklist failed ${JSON.stringify(error)}`, error, error);
         console.error(error);
     }
 }
@@ -674,6 +689,7 @@ module.exports = {
     whom,
     skip,
     voteSkip,
+    removeFromBlacklist,
     reset,
     resetRequest
 };

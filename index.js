@@ -66,7 +66,7 @@ app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, asy
     }
     else if (payload.actions[0].name == CONSTANTS.BLACKLIST_REMOVE){
       logger.info("Remove from blacklist triggered");
-      logger.info(JSON.stringify(payload));
+      await spotifyController.removeFromBlacklist(payload.actions[0].selected_options[0].value, payload.response_url)
     }
   }
   else{

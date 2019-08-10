@@ -132,6 +132,12 @@ function getBlacklist(uri){
     return blacklist.findOne( {uri: uri} );
 }
 
+function removeBlacklist(track_uri){
+    var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
+    blacklist.remove(track_uri);
+    return;
+}
+
 module.exports = {
     clearSearches,
     getAllBlacklist,
@@ -140,6 +146,7 @@ module.exports = {
     getHistory,
     getSearch,
     getSkip,
+    removeBlacklist,
     setArtist,
     setBlacklist,
     setCurrent,

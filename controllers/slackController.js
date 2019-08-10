@@ -232,8 +232,9 @@ async function postReply(body, response_url){
     }
 }
 
-function selectAttachment(fallback, callback_id, action_name, options){
+function selectAttachment(fallback, callback_id, action_name, text, options){
     return {
+        "text": text,
         "fallback" : fallback,
         "callback_id" : callback_id,
         "actions" : [
