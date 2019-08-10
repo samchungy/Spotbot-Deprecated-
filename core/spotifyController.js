@@ -660,6 +660,7 @@ async function removeFromBlacklist(track_uri,response_url){
         let blacklist = tracks.getBlacklist(track_uri);
         if (blacklist != null){
             var attachment = slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, `:heavy_check_mark: Track removed`, null);
+            tracks.removeBlacklist(track_uri);
             await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", [attachment], response_url);
         } else {
             await slack.sendEphemeralReply("That track has already been removed.", null, response_url);
