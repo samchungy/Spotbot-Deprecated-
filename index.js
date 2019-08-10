@@ -12,12 +12,15 @@ const slack = require('./controllers/slackController');
 const port = process.env.PORT || 3000;
 const logger = require('./log/winston');
 const slackAuth = require('./core/slackAuth');
+const spotifyPlayerIndex = require('./spotify/spotifyIndex');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(bodyParser.raw());
+
+app.use('/player', spotifyPlayerIndex);
 
 /**
  * Slack button actions all flow here
