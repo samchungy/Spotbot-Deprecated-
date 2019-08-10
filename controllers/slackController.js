@@ -21,14 +21,25 @@ function reply(response_type, text, attachments){
 }
 
 async function sendEphemeralReply(text, attachments, response_url){
-    await postReply(reply("ephemeral", text, attachments), response_url);
+    try {
+        await postReply(reply("ephemeral", text, attachments), response_url);
+    } catch (error) {
+    }
 }
 async function sendReply(text, attachments, response_url){
-    await postReply(reply("in_channel", text, attachments), response_url);
+    try {
+        await postReply(reply("in_channel", text, attachments), response_url);
+    } catch (error) {
+        throw Error(error);
+    }
 }
 
 async function sendDeleteReply(text, attachments, response_url){
-    await postReply(deleteReply("in_channel", text, attachments), response_url);
+    try {
+        await postReply(deleteReply("in_channel", text, attachments), response_url);
+    } catch (error) {
+        throw Error(error);
+    }
 }
 
 function deleteReply(response_type, text, attachments){
@@ -229,6 +240,7 @@ async function postReply(body, response_url){
         return await axios.post(response_url, body);
     } catch (error) {
         logger.error(`Slack post reply failed`, error);
+        throw Error(error);
     }
 }
 
