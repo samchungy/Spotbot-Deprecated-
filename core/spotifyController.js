@@ -619,18 +619,16 @@ async function addSongToBlacklist(trigger_id, track_uri, slack_user, response_ur
         let track = await spotify_player.getTrack(track_id);
         var name = _.get(track, 'body.name');
         var artist = _.get(track, 'body.artists[0].name');
-        if (tracks.getBlacklist(track.body.uri) != null){
+        if (tracks.getBlacklist(track.body.uri) == null){
             tracks.setBlacklist(track_uri, artist, name);
-            var history = tracks.getSearch(trigger_id);
-            if (history != null) {
-                tracks.deleteSearch(history);
-            }
             await slack.post(channel_id, `:bangbang: ${name} - ${artist} was blacklisted by <@${slack_user}>`);
-            return;
         } else {
             await slack.post(channel_id, `:interrobang: ${name} - ${artist} is already blacklisted.`);
         }
-
+        var history = tracks.getSearch(trigger_id);
+        if (history != null) {
+            tracks.deleteSearch(history);
+        }
         
     } catch (error) {
         logger.error(`Add Song to Blacklist failed`, error);
