@@ -214,7 +214,7 @@ app.post('/blacklist',slackAuth.signVerification, spotifyAuth.isAuthed, spotifyS
   }
   else {
     res.send(slack.ack());
-    await spotifyController.blacklistFind(req.body.text, req.body.response_url);
+    await spotifyController.blacklistFind(req.body.text, req.body.trigger_id, req.body.response_url);
   }
 });
 

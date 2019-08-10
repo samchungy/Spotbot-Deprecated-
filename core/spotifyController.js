@@ -270,7 +270,6 @@ async function getThreeBlacklistTracks(trigger_id, pagenum, response_url) {
     } catch (error) {
         logger.error(`Failed to get 3 more tracks`, error);
     }
-    await slack.sendEphemeralReply(`Spotify failed to get 3 more tracks`, null, response_url);
     return;
 }
 
