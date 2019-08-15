@@ -31,5 +31,65 @@ module.exports = {
     RESET: "reset",
     ARTIST: "artist",
     BLACKLIST : "blacklist",
-    BLACKLIST_REMOVE: "blacklist_remove"
+    BLACKLIST_REMOVE: "blacklist_remove",
+    CRONJOBS : {
+        REFRESH: "REFRESH_CRONJOB",
+        TENSECOND: "TEN_SECOND_CRONJOB"
+    },
+    DB : {
+        SETTINGS_FILE: "settings.db",
+        SPOTIFY_FILE: "spotify.db",
+        COLLECTION: {
+            ADMIN: "admin",
+            AUTH: "auth",
+            BLACKLIST: "blacklist",
+            CONFIG : "config",
+            CURRENT_TRACK: "current_track",
+            HISTORY: "history",
+            NAME: "name",
+            SEARCH: "search",
+            SETTINGS : "settings",
+            SKIP: "skip"
+        },
+        KEY: {
+            BLACKLIST: "blacklist",
+            CURRENT_TRACK: "current_track",
+            SKIP: "skip",
+            TRACK_URI: "uri",
+            TRIGGER_ID: "trigger_id"
+
+        }
+    },
+    SPOTIFY_AUTH : {
+        REDIRECT_PATH: "settings/auth"
+    },
+    SLACK : {
+        BUTTON_STYLE: {
+            PRIMARY: "primary",
+        },
+        DIALOG: {
+            API: "https://slack.com/api/dialog.open",
+            HINTS : {
+                CHANNEL: "The channel Slackbot will restrict usage of commands to.",
+                PLAYLIST: "The name of the playlist Spotbot will save to. If it does not exist Spotbot will create one for you.",
+                DEFAULT_DEVICE: "This helps Spotbot with commands. Turn on your Spotify device",
+                DISABLE_REPEATS : "The duration where no one can add the same song. Set it to 0 to allow repeats all the time. Integers only",
+                BACK_TO_PLAYLIST: "Enables the ability for Spotify to return to the playlist if it runs out of songs AND a new song is added",
+                NOW_PLAYING: "Sends a now playing message when a song changes",
+                SKIP_VOTES: "The number of additional votes needed to skip a song. Integers only"
+            }
+        },
+        PAYLOAD: {
+            ADD_SONG : "ADDSONG",
+            BLACKLIST : "blacklist",
+            BLACKLIST_REMOVE: "blacklist_remove",
+            SEE_MORE_ARTISTS: "SEEMOREARTISTS",
+            SEE_MORE_BLACKLIST : "SEEMOREBLACKLIST",
+            SEE_MORE_TRACKS : "SEEMORETRACKS",
+            SPOTBOT_CONFIG: "SPOTBOTCONFIG"
+        },
+        POST : {
+            API: "https://slack.com/api/chat.postMessage"
+        }
+    }
 }

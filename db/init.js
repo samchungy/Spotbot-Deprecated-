@@ -14,23 +14,22 @@ const db2 = new loki(CONSTANTS.TRACKS_FILE, {
 });
 
 function initialiseConfig() {
-    var configs = db.getCollection(CONSTANTS.CONFIG);
+    var configs = db.getCollection(CONSTANTS.DB.COLLECTION.CONFIG);
     // If collection is empty do not load it, instead - create a new file
     if (configs === null || configs.count() == 0) {
-        db.addCollection(CONSTANTS.CONFIG);
+        db.addCollection(CONSTANTS.DB.COLLECTION.CONFIG);
         return;
     }
     let {initialise} = require('../core/spotifyAuth');
     initialise();
     let {initialise2} = require('../core/spotifyConfig');
-    initialise2();
 }
 
 /**
  * Initialise the database
  */
 function initialiseTracks() {
-    var searches = db2.getCollection(CONSTANTS.SEARCH);
+    var searches = db2.getCollection(CONSTANTS.DB.COLLECTION.SEARCH);
     var history = db2.getCollection(CONSTANTS.HISTORY);
     var skip = db2.getCollection(CONSTANTS.SKIP);
     var current_track = db2.getCollection(CONSTANTS.CURRENT_TRACK);

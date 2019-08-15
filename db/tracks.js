@@ -1,6 +1,47 @@
 const CONSTANTS = require('../constants');
-const init = require('./init');
+const init = require('./init2');
 const {db2} = init;
+
+function getSearches(){
+    return db2.getCollection(CONSTANTS.DB.COLLECTION.SEARCH);
+}
+
+function createSearch(search){
+    let searches = getSearches();
+    searches.insert(search);
+}
+
+function getSearch(trigger_id){
+    return searches.findOne( {[CONSTANTS.DB.KEY.TRIGGER_ID]: trigger_id} );
+}
+
+function updateSearch(search){
+    let searches = getSearches();
+    searches.update(search);
+}
+
+function deleteSearch(search){
+    let searches = getSearches();
+    searches.remove(search);
+}
+
+function getAllHistory(){
+    return db2.getCollection(CONSTANTS.DB.COLLECTION.HISTORY);
+}
+
+function createHistory(history){
+    let all_history = getAllHistory();
+    all_history.insert(history);
+}
+
+function getHistory(uri){
+    return all_history.findOne({[CONSTANTS.DB.KEY.TRACK_URI]: uri});
+}
+
+function updateHistory(history){
+    let all_history = getAllHistory();
+    all_history.insert(history);
+}
 
 function getCurrent(){
     var current = db2.getCollection(CONSTANTS.CURRENT_TRACK);
@@ -139,22 +180,11 @@ function removeBlacklist(track){
 }
 
 module.exports = {
-    clearSearches,
-    getAllBlacklist,
-    getBlacklist,
-    getCurrent,
+    createSearch,
+    createHistory,
+    deleteSearch,
     getHistory,
     getSearch,
-    getSkip,
-    removeBlacklist,
-    setArtist,
-    setBlacklist,
-    setCurrent,
-    setHistory,
-    setSkip,
-    setArtistSearch,
-    setSearch,
-    updateSearch,
-    deleteSearch,
-    updateHistory
+    updateHistory,
+    updateSearch
 }

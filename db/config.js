@@ -1,5 +1,5 @@
 const CONSTANTS = require('../constants');
-const init = require('./init');
+const init = require('./init2');
 const {db} = init;
 
 /**
@@ -88,20 +88,24 @@ function getAdmins(){
  * @param {} item 
  */
 function update(item){
-    var configs = db.getCollection(CONSTANTS.CONFIG);
+    var configs = getConfig();
     configs.update(item);
 }
 
 function find(name){
-    var configs = db.getCollection(CONSTANTS.CONFIG);
+    var configs = getConfig();
     return configs.findOne( { name: name } );
 }
 
 function create(name){
-    var configs = db.getCollection(CONSTANTS.CONFIG);
+    var configs = getConfig();
     configs.insert({
         name: name
     });
+}
+
+function getConfig(){
+    return db.getCollection(CONSTANTS.DB.COLLECTION.CONFIG);
 }
 
 module.exports = {
@@ -111,5 +115,7 @@ module.exports = {
     setAdmin,
     setAuth,
     setSpotifyConfig,
+    create,
+    find,
     update
 };
