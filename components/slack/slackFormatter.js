@@ -68,6 +68,15 @@ class reply {
     }
 }
 
+class deleteReply extends reply {
+    constructor(text, attachments) {
+        super(text, attachments);
+        this.json = Object.assign(this.json, {
+            delete_original : true
+        });
+    }
+}
+
 class inChannelReply extends reply {
     constructor (text, attachments) {
         super(text, attachments);
@@ -173,8 +182,13 @@ function ack(){
     return new inChannelReply("", null).json;
 }
 
+function ackDelete(){
+    return new deleteReply("", null).json;
+}
+
 module.exports = {
     ack,
+    ackDelete,
     buttonAttachment,
     dialog,
     dialogError,

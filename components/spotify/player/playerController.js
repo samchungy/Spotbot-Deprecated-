@@ -19,7 +19,28 @@ async function pause(req, res) {
     }
 }
 
+async function current(req, res){
+    try {
+        logger.info("Current triggered");
+        if (req.body.text == "track" || req.body.text == ""){
+          await player_service.getCurrentTrack(req.body.response_url);
+        }
+        else if (req.body.text == "playlist"){
+          await player_service.getCurrentPlaylist(req.body.response_url);
+        }
+    } catch (error) {
+        logger.error("Find current failed", error);
+    }
+}
+
+function onPlaylist(context, playlist_id){
+    return player_service.onPlaylist(context, playlist_id)
+}
+
+
 module.exports = {
+    current,
+    onPlaylist,
     play,
     pause
 }

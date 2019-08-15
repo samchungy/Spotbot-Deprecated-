@@ -38,6 +38,14 @@ function getPlaylistId(){
     return getSpotbotConfig().playlist_id;
 }
 
+function getPlaylistName(){
+    return getSpotbotConfig().playlist;
+}
+
+function getPlaylistLink(){
+    return getSpotbotConfig().playlist_link;
+}
+
 function getDisableRepeatsDuration(){
     return getSpotbotConfig().disable_repeats_duration;
 }
@@ -55,6 +63,8 @@ module.exports = {
     getChannel,
     getDisableRepeatsDuration,
     getPlaylistId,
+    getPlaylistLink,
+    getPlaylistName,
     getSpotbotConfig,
     setSpotbotConfig
 };

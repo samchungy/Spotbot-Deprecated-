@@ -4,9 +4,11 @@ const moment = require('moment');
 const logger = require('../../../log/winston');
 const tracks_api = require('./tracksAPI');
 const tracks_dal = require('./tracksDAL');
+const {onPlaylist} = require('../player/playerController');
 const slack_controller = require('../../slack/slackController');
 const slack_formatter = slack_controller.slack_formatter;
 const settings_controller = require('../../settings/settingsController');
+const {getSpotifyUserId} = require('../auth/spotifyAuthController');
 const CONSTANTS = require('../../../constants');
 
 async function find(query, trigger_id, response_url) {
@@ -111,7 +113,7 @@ async function addTrack(trigger_id, track_uri, user_id) {
             // Update history record with new user
             if (disable_repeats_duration){
                 if (await isRepeat(disable_repeats_duration, history.time)){
-                    await slack.post(channel_id, `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(history.time)).humanize()} ago.`);
+                    await slack_controller.post(channel_id, `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(history.time)).humanize()} ago.`);
                     return
                 }
             }
@@ -158,14 +160,6 @@ function isRepeat(disable_repeats_duration, time){
     return false;
 }
 
-function onPlaylist(context, playlist_id){
-    var regex = /[^:]+$/;
-    var found;
-    return !(context == null || (context.uri && 
-        (found = context.uri.match(regex)) && found[0] != playlist_id));
-
-}
-
 /**
  * @param {string} playlist_id
  * @param {string[]} tracks
@@ -197,10 +191,57 @@ async function setBackToPlaylist(playlist_id, tracks, current_track){
     }
 }
 
+async function whom(response_url) {
+    try {
+        var spotify_user_id = getSpotifyUserId();
+        var playlist_id = settings_controller.getPlaylistId()
+        let current_track = await tracks_api.getPlayingTrack();
+        if (current_track.statusCode == 204){
+            await slack_controller.reply(":information_source: Spotify is currently not playing.", null, response_url);
+            return;
+        }
+        // Check if Spotify is playing from the playlist.
+        if(!onPlaylist(current_track.body.context, playlist_id)){
+            await slack_controller.reply(`:information_source: Spotify is not playing from the playlist. Current Song: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
+            return;
 
+        }
+        else {
+            var previous_track = tracks_dal.getHistory(current_track.body.item.uri);
+            var playlist_id = settings_controller.getPlaylistId();
+            let playlist = await tracks_api.getPlaylist(playlist_id);
+            var num_of_searches = Math.ceil(playlist.body.tracks.total/100);
+
+            // Find track's last added location. We will have to search the playlist part by part from back to front.
+            for (let offset = num_of_searches-1; offset >=0 ; offset--){
+                let playlist_tracks = await tracks_api.getPlaylistTracks(playlist_id, offset);
+                let track_list = _.get(playlist_tracks, 'body.items');
+                let index = _.findLastIndex(track_list, track => {
+                    return track.track.uri == current_track.body.item.uri
+                });
+                // Track was found
+                if (index != -1){
+                    let found_track = track_list[index];
+                    if (previous_track == null || found_track.added_by.id != spotify_user_id) {
+                        await slack_controller.reply(`:white_frowning_face: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was added ${moment(found_track.added_at).fromNow()} directly to the playlist by ${found_track.added_by.id}.`, null, response_url);
+                        return;            
+                    }
+                    else{
+                        await slack_controller.reply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was last added ${moment(previous_track.time).fromNow()} by <@${previous_track.user_id}>.`, null, response_url);
+                        return;
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        logger.error(`Whom failed`, error);
+    }
+    return; 
+}
 
 module.exports = {
     addTrack,
     find,
-    getThreeTracks
+    getThreeTracks,
+    whom
 }

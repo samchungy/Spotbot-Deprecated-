@@ -25,71 +25,71 @@ app.use('/settings', settings_index);
 app.use('/', spotify_index);
 
 
-/**
- * Slack button actions all flow here
- */
-app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, async (req, res) =>{
-  var payload = JSON.parse(req.body.payload);
-  if (payload.actions != null && payload.actions.length > 0){
-    // See more tracks button action
-    if (payload.actions[0].name == CONSTANTS.SEE_MORE_TRACKS){
-      logger.info("See more action triggered");
-      res.send();
-      await spotifyController.getThreeTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
-    }
-    if (payload.actions[0].name == CONSTANTS.SEE_MORE_BLACKLIST){
-      logger.info("See more blacklist action triggered");
-      res.send();
-      await spotifyController.getThreeBlacklistTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
-    }
-    else if (payload.actions[0].name == CONSTANTS.SEE_MORE_ARTISTS){
-      logger.info("See more artists action triggered");
-      res.send();
-      await spotifyController.getThreeArtists(payload.callback_id, payload.actions[0].value, payload.response_url);
-    }
-    // Add a song button
-    else if (payload.actions[0].name == CONSTANTS.ADD_SONG){
-      logger.info("Add Song triggered");
-      res.send(slack.deleteReply("ephemeral", ""));
-      await spotifyController.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user);
-    }
-    else if (payload.actions[0].name == CONSTANTS.SKIP){
-      logger.info("Skip vote triggered");
-      res.send();
-      await spotifyController.voteSkip(payload.user, payload.callback_id, payload.response_url);
-    }
-    else if (payload.actions[0].name == CONSTANTS.RESET){
-      logger.info("Reset triggered");
-      await spotifyController.reset(payload.response_url, payload.user.id);
-    }
-    else if (payload.actions[0].name == CONSTANTS.ARTIST){
-      logger.info("See more artists triggered");
-      await spotifyController.artistToFindTrack(payload.callback_id, payload.actions[0].value, payload.response_url)
-    }
-    else if (payload.actions[0].name == CONSTANTS.BLACKLIST){
-      logger.info("add to blacklist triggered");
-      res.send(slack.deleteReply("ephemeral", ""));
-      await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.user.id)
-    }
-    else if (payload.actions[0].name == CONSTANTS.BLACKLIST_REMOVE){
-      logger.info("Remove from blacklist triggered");
-      await spotifyController.removeFromBlacklist(payload.actions[0].selected_options[0].value, payload.response_url)
-    }
-  }
-  else{
-    if (payload.callback_id == CONSTANTS.SPOTIFY_CONFIG){
-      let errors = await spotifySetup.verifySettings(payload.submission, payload.response_url, res);
-      if (!errors){
-        res.send();
-      } else {
-        res.send({errors});
-      }
-    }
-    else{
-      res.send("Inavlid Command");
-    }
-  }
-});
+// /**
+//  * Slack button actions all flow here
+//  */
+// app.post('/slack/actions', slackAuth.signVerification, spotifyAuth.isAuthed, async (req, res) =>{
+//   var payload = JSON.parse(req.body.payload);
+//   if (payload.actions != null && payload.actions.length > 0){
+//     // See more tracks button action
+//     if (payload.actions[0].name == CONSTANTS.SEE_MORE_TRACKS){
+//       logger.info("See more action triggered");
+//       res.send();
+//       await spotifyController.getThreeTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
+//     }
+//     if (payload.actions[0].name == CONSTANTS.SEE_MORE_BLACKLIST){
+//       logger.info("See more blacklist action triggered");
+//       res.send();
+//       await spotifyController.getThreeBlacklistTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
+//     }
+//     else if (payload.actions[0].name == CONSTANTS.SEE_MORE_ARTISTS){
+//       logger.info("See more artists action triggered");
+//       res.send();
+//       await spotifyController.getThreeArtists(payload.callback_id, payload.actions[0].value, payload.response_url);
+//     }
+//     // Add a song button
+//     else if (payload.actions[0].name == CONSTANTS.ADD_SONG){
+//       logger.info("Add Song triggered");
+//       res.send(slack.deleteReply("ephemeral", ""));
+//       await spotifyController.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user);
+//     }
+//     else if (payload.actions[0].name == CONSTANTS.SKIP){
+//       logger.info("Skip vote triggered");
+//       res.send();
+//       await spotifyController.voteSkip(payload.user, payload.callback_id, payload.response_url);
+//     }
+//     else if (payload.actions[0].name == CONSTANTS.RESET){
+//       logger.info("Reset triggered");
+//       await spotifyController.reset(payload.response_url, payload.user.id);
+//     }
+//     else if (payload.actions[0].name == CONSTANTS.ARTIST){
+//       logger.info("See more artists triggered");
+//       await spotifyController.artistToFindTrack(payload.callback_id, payload.actions[0].value, payload.response_url)
+//     }
+//     else if (payload.actions[0].name == CONSTANTS.BLACKLIST){
+//       logger.info("add to blacklist triggered");
+//       res.send(slack.deleteReply("ephemeral", ""));
+//       await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.user.id)
+//     }
+//     else if (payload.actions[0].name == CONSTANTS.BLACKLIST_REMOVE){
+//       logger.info("Remove from blacklist triggered");
+//       await spotifyController.removeFromBlacklist(payload.actions[0].selected_options[0].value, payload.response_url)
+//     }
+//   }
+//   else{
+//     if (payload.callback_id == CONSTANTS.SPOTIFY_CONFIG){
+//       let errors = await spotifySetup.verifySettings(payload.submission, payload.response_url, res);
+//       if (!errors){
+//         res.send();
+//       } else {
+//         res.send({errors});
+//       }
+//     }
+//     else{
+//       res.send("Inavlid Command");
+//     }
+//   }
+// });
 
 app.post('/options', slackAuth.signVerification, async (req, res) => {
   logger.info("Option triggered");

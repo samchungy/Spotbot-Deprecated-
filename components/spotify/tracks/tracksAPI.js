@@ -1,5 +1,5 @@
 const spotify_api = require('../../spotify/auth/spotifyAuthAPI').spotifyApi
-const {pause} = require('../player/playerAPI');
+const {pause, getPlayingTrack} = require('../player/playerAPI');
 const logger = require('../../../log/winston');
 
 /**
@@ -34,15 +34,6 @@ async function getSearchTracks(query){
         });
     } catch (error) {
         logger.error(`Spotify API: Get Search Tracks failed.`, error);
-        throw Error(error);
-    }
-}
-
-async function getPlayingTrack(){
-    try{
-        return await spotify_api.getMyCurrentPlayingTrack();
-    } catch (error) {
-        logger.error(`Spotify API: Get current playing track failed.`, error);
         throw Error(error);
     }
 }

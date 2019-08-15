@@ -72,11 +72,21 @@ async function transferPlayback(device_id){
     }
 }
 
+async function getPlayingTrack(){
+    try{
+        return await spotify_api.getMyCurrentPlayingTrack();
+    } catch (error) {
+        logger.error(`Spotify API: Get current playing track failed.`, error);
+        throw Error(error);
+    }
+}
+
 module.exports = {
     createPlaylist,
     getAllPlaylists,
     getDevices,
     getPlaybackState,
+    getPlayingTrack,
     pause,
     play,
     transferPlayback

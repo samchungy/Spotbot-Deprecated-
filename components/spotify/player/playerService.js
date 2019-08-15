@@ -80,7 +80,55 @@ async function pause(response_url) {
 
 }
 
+async function getCurrentTrack(response_url){
+    try {
+        let playlist_id = settings_controller.getPlaylistId();
+        let current_track = await player_api.getPlayingTrack();
+        if (current_track.statusCode == 204){
+            await slack_controller.reply(":information_source: Spotify is currently not playing", null, response_url);
+            return;
+        }
+        if (onPlaylist(current_track.body.context, playlist_id)){
+            await slack_controller.reply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`, null, response_url);
+            return;
+        } else {
+            await slack_controller.reply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
+            return;
+        }
+    } catch (error) {
+        logger.error(`Get current track failed`, error);
+        throw Error(error);
+    }
+
+}
+
+
+async function getCurrentPlaylist(response_url){
+    try {
+        var current_playlist = settings_controller.getPlaylistName();
+        var playlist_link = settings_controller.getPlaylistLink();
+        await slack_controller.reply(`:notes: Currently playing from Spotify playlist: <${playlist_link}|${current_playlist}>`, null, response_url); 
+        return;
+    } catch (error) {
+        logger.error(`Get current playlist failed`, error);
+        throw Error(error);
+    }
+
+}
+
+
+function onPlaylist(context, playlist_id){
+    var regex = /[^:]+$/;
+    var found;
+    return !(context == null || (context.uri && 
+        (found = context.uri.match(regex)) && found[0] != playlist_id));
+
+}
+
 module.exports = {
+    getCurrentPlaylist,
+    getCurrentTrack,
+    onPlaylist,
     pause,
     play
 }

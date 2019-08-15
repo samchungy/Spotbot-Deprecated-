@@ -81,12 +81,13 @@ module.exports = {
         },
         PAYLOAD: {
             ADD_SONG : "ADDSONG",
-            BLACKLIST : "blacklist",
-            BLACKLIST_REMOVE: "blacklist_remove",
+            BLACKLIST : "BLACKLIST",
+            BLACKLIST_REMOVE: "BLACKLIST_REMOVE",
             SEE_MORE_ARTISTS: "SEEMOREARTISTS",
             SEE_MORE_BLACKLIST : "SEEMOREBLACKLIST",
             SEE_MORE_TRACKS : "SEEMORETRACKS",
-            SPOTBOT_CONFIG: "SPOTBOTCONFIG"
+            SPOTBOT_CONFIG: "SPOTBOTCONFIG",
+            DELETABLE: ["ADDSONG", "BLACKLIST"]
         },
         POST : {
             API: "https://slack.com/api/chat.postMessage"

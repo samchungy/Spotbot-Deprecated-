@@ -9,13 +9,14 @@ const slack_controller = require('../slack/slackController');
 const spotify_auth_controller = require('./auth/spotifyAuthController');
 const tracks_controller = require('./tracks/tracksController');
 
-router.use(slack_controller.isFromSlack, spotify_auth_controller.isAuth, settings_controller.isInChannel);
+router.use(slack_controller.isFromSlack, spotify_auth_controller.isAuth);
 
 router.post('/slack/actions', async (req, res) => {
-    res.send();
     var payload = JSON.parse(req.body.payload);
+    // Some actions requrie the previous reply to be deleted.
     if (_.get(payload.actions,"length") > 0){
         let payload_name = payload.actions[0].name;
+        tracks_controller.deleteOrAckReply(req, res, payload_name);
         if (payload_name == PAYLOAD.SEE_MORE_TRACKS) {
             await tracks_controller.seeMoreTracks(payload);
         } else if (payload_name == PAYLOAD.SEE_MORE_BLACKLIST) {
@@ -27,7 +28,6 @@ router.post('/slack/actions', async (req, res) => {
             // await spotifyController.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user);
             await tracks_controller.addTrack(payload);
         } else if (payload_name == PAYLOAD.BLACKLIST) {
-            res.send(slack.deleteReply("ephemeral", ""));
             await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.user.id)      
         } else if (payload_name == PAYLOAD.BLACKLIST_REMOVE) {
             await spotifyController.removeFromBlacklist(payload.actions[0].selected_options[0].value, payload.response_url)
@@ -39,13 +39,13 @@ router.post('/slack/actions', async (req, res) => {
     }
 });
 
-router.use(slack_controller.ack);
+router.use(settings_controller.isInChannel, slack_controller.ack);
 
 // Play, pause
 router.post('/player/pause', player_controller.pause);
 router.post('/player/play', player_controller.play);
-router.post('/find', tracks_controller.find)
-
-
+router.post('/find', tracks_controller.find);
+router.post('/current', player_controller.current);
+router.post('/whom', tracks_controller.whom);
 
 module.exports = router

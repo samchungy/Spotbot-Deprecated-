@@ -54,6 +54,14 @@ function getPlaylistId(){
     return settings_dal.getPlaylistId();
 }
 
+function getPlaylistName(){
+    return settings_dal.getPlaylistName();
+}
+
+function getPlaylistLink(){
+    return settings_dal.getPlaylistLink();
+}
+
 function getDisableRepeatsDuration(){
     return settings_dal.getDisableRepeatsDuration();
 }
@@ -70,6 +78,8 @@ module.exports = {
     getDisableRepeatsDuration,
     getOptions,
     getPlaylistId,
+    getPlaylistName,
+    getPlaylistLink,
     settings,
     verifySettings
 }

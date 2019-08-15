@@ -100,7 +100,7 @@ async function verifySettings(submission, response_url){
       var number_submissions = ["disable_repeats_duration", "skip_votes"];
       for (let i of number_submissions){
         if (!isPositiveInteger(submission[i])){
-          error.push(new slack_formatter.dialogError(i, "Please enter a valid integer"));
+          errors.push(new slack_formatter.dialogError(i, "Please enter a valid integer").json);
         }
       }
       if (errors.length > 0){

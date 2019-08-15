@@ -22,6 +22,15 @@ function ack(req, res, next){
     }
 }
 
+function deleteAndAck(req, res){
+    try {
+        res.send(slack_formatter.ackDelete());
+    } catch (error) {
+        logger.error(`Slack ack delete failed`);
+        throw Error(error);
+    }
+}
+
 /**
  * Check that the request is a genuine request from Slack.
  * @param {*} req 
@@ -98,6 +107,7 @@ async function sendDialog(trigger_id, dialog){
 
 module.exports = {
     ack,
+    deleteAndAck,
     inChannelReply,
     isFromSlack,
     post,
