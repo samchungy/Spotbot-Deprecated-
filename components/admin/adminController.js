@@ -28,7 +28,22 @@ async function isAdmin(req, res, next) {
     }
 }
 
+async function adminMenu (req, res, array){
+    try {
+        if (array[1] == "add") {
+            admin_service.addAdmin(array[2], req.body.response_url);
+        } else if (array[1] == "remove") {
+            admin_service.removeAdmin(array[2], req.body.user_name, req.body.response_url);
+        } else if (array[1] == "list") {
+            admin_service.listAdmins(req.body.response_url);
+        }
+    } catch (error) {
+        logger.error("Failed to run the admin command", error);
+    }
+}
+
 module.exports = {
+    adminMenu,
     initAdmin,
     isAdmin,
     setAdmin

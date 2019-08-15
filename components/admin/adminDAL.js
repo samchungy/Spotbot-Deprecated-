@@ -31,7 +31,12 @@ function setAdmin(user_name){
     }
 }
 
+function updateAdmins(admins){
+    config.update(admins);
+}
+
 module.exports = {
     getAdmins,
-    setAdmin
+    setAdmin,
+    updateAdmins,
 }

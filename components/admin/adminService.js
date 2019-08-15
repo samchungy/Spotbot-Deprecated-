@@ -39,8 +39,72 @@ async function isAdmin(user, response_url){
     }
 }
 
+
+function addAdmin(slack_user, response_url){
+    try {
+        if (!slack_user){
+            slack_controller.reply(`No user specified. `, null, response_url);
+            return;
+        }
+        slack_name = slack_user.substr(1)
+        var admins = admin_dal.getAdmins();
+        if (admins.users.includes(slack_name)){
+            slack_controller.reply(`<${slack_user}> is already an admin. `, null, response_url);
+            return;
+        }
+        setAdmin(slack_name);
+        slack_controller.reply(`<${slack_user}> has been added as an admin.`, null, response_url);
+        return;
+    } catch (error) {
+        logger.error(`Adding admin failed`, error);
+        throw Error(error);
+    }
+}
+
+function removeAdmin(slack_user, requester, response_url){
+    try {
+        if (!slack_user){
+            slack_controller.reply(`No user specified. `, null, response_url);
+            return;
+        }
+        slack_name = slack_user.substr(1);
+        if(slack_name == requester){
+            slack_controller.reply("You cannot remove yourself as an admin.", null, response_url);
+            return;
+        }
+        var admins = admin_dal.getAdmins();
+        if (admins.users.includes(slack_name)){
+            admins.users.splice( admins.users.indexOf(slack_name), 1 );
+            admin_dal.updateAdmins(admins);
+            slack_controller.reply(`Successfully removed <${slack_user}> from admins.`, null, response_url);
+            return;
+        } else {
+            slack_controller.reply(`<${slack_user}> is not an admin.`, null, response_url);
+        }
+    } catch (error) {
+        logger.error(`Removing admin failed`, error);
+        throw Error(error);
+    }
+}
+
+function listAdmins(response_url){
+    try {
+        var admins = admin_dal.getAdmins();
+        var admin_string = "";
+        for (let i of admins.users){
+            admin_string += `<@${i}> `
+        }
+        slack_controller.reply(`Current Admins: ${admin_string}`, null, response_url);
+    } catch (error) {
+        logger.error("List admins failed ", error)
+    }
+}
+
 module.exports = {
+    addAdmin,
     initAdmin,
     isAdmin,
+    listAdmins,
+    removeAdmin,
     setAdmin
 }
