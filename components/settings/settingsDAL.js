@@ -58,6 +58,10 @@ function getChannel(){
     return getSpotbotConfig().channel;
 }
 
+function getSkipVotes(){
+    return getSpotbotConfig().skip_votes;
+}
+
 module.exports = {
     getBackToPlaylist,
     getChannel,
@@ -65,6 +69,7 @@ module.exports = {
     getPlaylistId,
     getPlaylistLink,
     getPlaylistName,
+    getSkipVotes,
     getSpotbotConfig,
     setSpotbotConfig
 };

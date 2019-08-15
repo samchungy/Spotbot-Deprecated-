@@ -22,6 +22,13 @@ router.post('/', async(req, res) => {
     await admin_controller.initAdmin(req, res);
   } else if (req.body.text == "settings") {
       await settings_controller.settings(req, res);
+  } else {
+    let array = req.body.text.split(" ");
+    if (array) {
+      if (array[0] == "admin") {
+        await admin_controller.adminMenu(req, res, array);
+      }
+    }
   }
 });
 

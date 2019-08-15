@@ -45,6 +45,31 @@ function updateHistory(history){
     all_history.insert(history);
 }
 
+function getOtherCollection(){
+    return db2.getCollection(CONSTANTS.DB.COLLECTION.OTHER)
+}
+
+function createOther(name){
+    let other = getOtherCollection();
+    other.insert({
+        [CONSTANTS.DB.KEY.TYPE]: name
+    });
+}
+
+function getOther(name){
+    let other = getOtherCollection();
+    return other.findOne({[CONSTANTS.DB.KEY.TYPE]: name});
+}
+
+function updateOther(other_object){
+    let other = getOtherCollection();
+    other.update(other_object);
+}
+
+function getSkip(){
+    return db2.getCollection(CONSTANTS.DB.COLLECTION.OTHER);
+}
+
 // function getCurrent(){
 //     var current = db2.getCollection(CONSTANTS.CURRENT_TRACK);
 //     return current.findOne( {name: CONSTANTS.CURRENT_TRACK} );
@@ -182,11 +207,14 @@ function updateHistory(history){
 // }
 
 module.exports = {
-    createSearch,
     createHistory,
+    createOther,
+    createSearch,
     deleteSearch,
     getHistory,
+    getOther,
     getSearch,
     updateHistory,
+    updateOther,
     updateSearch
 }

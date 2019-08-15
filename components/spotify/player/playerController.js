@@ -33,6 +33,24 @@ async function current(req, res){
     }
 }
 
+async function startVoteToSkip(req, res){
+    try {
+        logger.info("Skip vote started");
+        await player_service.startVoteToSkip(req.body.user_id, req.body.response_url);
+    } catch (error) {
+        logger.error("Failed to start skip vote");
+    }
+}
+
+async function voteToSkip(payload){
+    try {
+        logger.info("Skip vote received");
+        await player_service.voteToSkip(payload.user, payload.callback_id, payload.response_url);
+    } catch (error) {
+        logger.error("Failed to vote to skip", error);
+    }
+}
+
 function onPlaylist(context, playlist_id){
     return player_service.onPlaylist(context, playlist_id)
 }
@@ -42,5 +60,7 @@ module.exports = {
     current,
     onPlaylist,
     play,
-    pause
+    pause,
+    startVoteToSkip,
+    voteToSkip
 }

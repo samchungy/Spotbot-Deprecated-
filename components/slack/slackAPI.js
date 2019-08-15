@@ -36,8 +36,18 @@ async function post(params){
     }
 }
 
+async function postEphemeral(params){
+    try {
+        await axios.post(CONSTANTS.SLACK.POST.EPHEMERAL.API, qs.stringify(params));
+    } catch (error) {
+        logger.error(`Failed to ephemeral post to Slack`, error);
+        throw Error(erorr);
+    }
+}
+
 module.exports = {
     post,
+    postEphemeral,
     reply,
     sendDialog
 }

@@ -81,6 +81,15 @@ async function getPlayingTrack(){
     }
 }
 
+async function skip(){
+    try {
+        return await spotify_api.skipToNext();
+    } catch (error) {
+        logger.error(`Spotify API: Skip failed.`, error);
+        throw Error(error);
+    }
+}
+
 module.exports = {
     createPlaylist,
     getAllPlaylists,
@@ -89,5 +98,6 @@ module.exports = {
     getPlayingTrack,
     pause,
     play,
+    skip,
     transferPlayback
 }

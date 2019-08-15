@@ -115,6 +115,15 @@ class postParams {
     }
 }
 
+class postEpehemralParams extends postParams {
+    constructor (token, channel_id, text, user){
+        super(token, channel_id, text);
+        this.json = Object.assign(this.json, {
+            user: user
+        });
+    }
+}
+
 class dialogElement {
     constructor(name, value, label, hint){
         this.json = {
@@ -194,6 +203,7 @@ module.exports = {
     dialogError,
     dialogParams,
     inChannelReply,
+    postEpehemralParams,
     postParams,
     reply,
     selectDialogElement,

@@ -70,6 +70,10 @@ function getBackToPlaylist(){
     return settings_dal.getBackToPlaylist();
 }
 
+function getSkipVotes(){
+    return settings_dal.getSkipVotes();
+}
+
 module.exports = {
     isInChannel,
     getBackToPlaylist,
@@ -80,6 +84,7 @@ module.exports = {
     getPlaylistId,
     getPlaylistName,
     getPlaylistLink,
+    getSkipVotes,
     settings,
     verifySettings
 }

@@ -84,6 +84,16 @@ async function post(channel_id, text){
     }
 }
 
+async function postEphemeral(channel_id, user, text){
+    try {
+        let params = new slack_formatter.postParams(process.env.SLACK_TOKEN, channel_id, text, user).json;
+        await slack_api.postEphemeral(params);
+    } catch (error) {
+        logger.error("Post ephemeral failed", error);
+        throw Error(error);
+    }
+}
+
 async function inChannelReply(text, attachments, response_url){
     try {
         let message = new slack_formatter.inChannelReply(text, attachments).json;
@@ -105,12 +115,24 @@ async function sendDialog(trigger_id, dialog){
     }
 }
 
+async function deleteReply(text, attachments, response_url){
+    try {
+        let message = new slack_formatter.deleteReply(text, attachments).json;
+        await slack_api.reply(message, response_url);
+    } catch (error) {
+        logger.error("Delete reply failed", error);
+        throw Error(error);
+    }
+}
+
 module.exports = {
     ack,
     deleteAndAck,
+    deleteReply,
     inChannelReply,
     isFromSlack,
     post,
+    postEphemeral,
     reply,
     sendDialog,
     slack_formatter

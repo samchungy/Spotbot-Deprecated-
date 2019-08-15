@@ -24,13 +24,13 @@ router.post('/slack/actions', async (req, res) => {
         } else if (payload_name == PAYLOAD.SEE_MORE_ARTISTS) {
             await spotifyController.getThreeArtists(payload.callback_id, payload.actions[0].value, payload.response_url);
         } else if (payload_name == PAYLOAD.ADD_SONG) {
-            // res.send(slack.deleteReply("ephemeral", ""));
-            // await spotifyController.addSongToPlaylist(payload.callback_id, payload.actions[0].value, payload.user);
             await tracks_controller.addTrack(payload);
         } else if (payload_name == PAYLOAD.BLACKLIST) {
             await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.user.id)      
         } else if (payload_name == PAYLOAD.BLACKLIST_REMOVE) {
             await spotifyController.removeFromBlacklist(payload.actions[0].selected_options[0].value, payload.response_url)
+        } else if (payload.actions[0].name == CONSTANTS.SKIP) {
+            await player_controller.voteToSkip(payload);
         }
     } else {
         if (payload.callback_id == PAYLOAD.SPOTBOT_CONFIG) {
@@ -42,10 +42,11 @@ router.post('/slack/actions', async (req, res) => {
 router.use(settings_controller.isInChannel, slack_controller.ack);
 
 // Play, pause
-router.post('/player/pause', player_controller.pause);
-router.post('/player/play', player_controller.play);
-router.post('/find', tracks_controller.find);
+router.post('/pause', player_controller.pause);
+router.post('/play', player_controller.play);
 router.post('/current', player_controller.current);
+router.post('/find', tracks_controller.find);
+router.post('/skip', player_controller.skip);
 router.post('/whom', tracks_controller.whom);
 
 module.exports = router
