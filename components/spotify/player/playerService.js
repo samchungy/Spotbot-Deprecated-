@@ -3,8 +3,10 @@ const _ = require('lodash');
 const player_api = require('./playerAPI');
 const player_dal = require('./playerDAL');
 const slack_controller = require('../../slack/slackController');
+const slack_formatter = slack_controller.slack_formatter;
 const settings_controller = require('../../settings/settingsController');
 const logger = require('../../../log/winston');
+const CONSTANTS = require('../../../constants');
 
 /**
  * Hits play on Spotify
@@ -135,26 +137,32 @@ async function voteToSkip(slack_user, track_uri, response_url){
         var skip = player_dal.getSkip();
         let current_track = await player_api.getPlayingTrack();
         if (skip.uri != track_uri || _.get(current_track,'body.item.uri') != skip.uri){
-            await slack_controller.inChannelReply("This vote has expired.", null, response_url);
+            await slack_controller.inChannelReply(":information_source: This vote has expired.", null, response_url);
             return;
         }
         if (skip.users.includes(slack_user.id)){
-            slack_controller.postEphemeral(channel_id, slack_user.id, "You have already voted on this. ");
+            await slack_controller.postEphemeral(channel_id, slack_user.id, ":face_with_raised_eyebrow: You have already voted on this. ");
             return;
         }
         else{
             skip.users.push(slack_user.id);
-            player_dal.updateSkip(skip);
-            if (skip_votes==skip.users.length){
-                var users = "";
-                for (let user of skip.users){
-                    users += `<@${user}> `;
-                }
+            var user_text = "";
+            for (let user of skip.users){
+                user_text += `<@${user}> `;
+            }
+            if (parseInt(skip_votes)+1==skip.users.length){
                 await player_api.skip();
-                await slack_controller.deleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: ${skip.artist} - ${skip.name} was skipped by: ${users}`, null, response_url);
+                await slack_controller.deleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: ${skip.artist} - ${skip.name} was skipped by: ${user_text}`, null, response_url);
+                player_dal.updateSkip(skip.uri, skip.name, skip.artist, skip.users);
                 return;
             }
-            await slack_controller.deleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${skip.users[0]}> has requested to skip ${skip.artist} - ${skip.name}.`, [skip_attachment(skip.users, parseInt(skip_votes)-skip.users.length, track_uri)], response_url);
+            let votephrase = "votes";
+            let num_votes_needed = parseInt(skip_votes)+1-skip.users.length;
+            if (num_votes_needed == 1){
+                votephrase = "vote";
+            }
+            await slack_controller.deleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${skip.users[0]}> has requested to skip ${skip.artist} - ${skip.name}.`, 
+            [new slack_formatter.footer_attachment(`Votes: ${user_text}`, `Votes: ${user_text}`, current_track.body.item.uri, "Skip", null, CONSTANTS.SLACK.PAYLOAD.SKIP_VOTE, CONSTANTS.SLACK.PAYLOAD.SKIP_VOTE, `${num_votes_needed} more ${votephrase} needed.`).json], response_url);
             return; 
     
         }
@@ -168,7 +176,7 @@ async function startVoteToSkip(slack_user, response_url){
         var skip_votes = settings_controller.getSkipVotes();
         var skip_track = player_dal.getSkip();
 
-        let current_track = await spotify_player.getPlayingTrack();
+        let current_track = await player_api.getPlayingTrack();
         if (current_track.statusCode == 204){
             await slack_controller.inChannelReply(":information_source: Spotify is currently not playing.", null, response_url);
             return;
@@ -176,7 +184,7 @@ async function startVoteToSkip(slack_user, response_url){
         else{
             // Store Skip Info Somewhere
             if (skip_track == null){
-                player_dal.createSkip(null, null, null, null);
+                player_dal.createSkip();
                 skip_track = player_dal.getSkip();
             }
             if (skip_track.uri == current_track.body.item.uri){
@@ -188,16 +196,20 @@ async function startVoteToSkip(slack_user, response_url){
                 await slack_controller.deleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was skipped by: <@${slack_user}>`, null, response_url);
                 return;
             }
-            tracks.setSkip(current_track.body.item.uri, current_track.body.item.name, current_track.body.item.artists[0].name, [slack_user]);
+            player_dal.updateSkip(current_track.body.item.uri, current_track.body.item.name, current_track.body.item.artists[0].name, [slack_user]);
+            let votephrase = "votes";
+            let num_votes_needed = parseInt(skip_votes);
+            if (num_votes_needed == 1){
+                votephrase = "vote";
+            }
             await slack_controller.inChannelReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${slack_user}> has requested to skip ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}. `, 
-                [skip_attachment([slack_user], parseInt(skip_votes), current_track.body.item.uri)], response_url);
+                [new slack_formatter.footer_attachment(`Votes: <@${slack_user}>`, `Votes: <@${slack_user}>`, current_track.body.item.uri, "Skip", null, CONSTANTS.SLACK.PAYLOAD.SKIP_VOTE, CONSTANTS.SLACK.PAYLOAD.SKIP_VOTE, `${num_votes_needed} more ${votephrase} needed.`).json], response_url);
             return;
-
         }
     } catch (error) {
         logger.error(`Spotify failed to skip`, error);
     }
-    await slack_controller.reply("Failed to process skip command", null, response_url);
+    await slack_controller.reply(":slightly_frowning_face: Failed to process skip command", null, response_url);
 }
 
 module.exports = {

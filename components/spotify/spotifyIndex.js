@@ -29,7 +29,7 @@ router.post('/slack/actions', async (req, res) => {
             await spotifyController.addSongToBlacklist(payload.callback_id, payload.actions[0].value, payload.user.id)      
         } else if (payload_name == PAYLOAD.BLACKLIST_REMOVE) {
             await spotifyController.removeFromBlacklist(payload.actions[0].selected_options[0].value, payload.response_url)
-        } else if (payload.actions[0].name == CONSTANTS.SKIP) {
+        } else if (payload.actions[0].name == PAYLOAD.SKIP_VOTE) {
             await player_controller.voteToSkip(payload);
         }
     } else {
@@ -46,7 +46,7 @@ router.post('/pause', player_controller.pause);
 router.post('/play', player_controller.play);
 router.post('/current', player_controller.current);
 router.post('/find', tracks_controller.find);
-router.post('/skip', player_controller.skip);
+router.post('/skip', player_controller.startVoteToSkip);
 router.post('/whom', tracks_controller.whom);
 
 module.exports = router

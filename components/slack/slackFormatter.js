@@ -25,6 +25,15 @@ class buttonAttachment extends attachment {
     }
 }
 
+class footer_attachment extends buttonAttachment{
+    constructor(text, fallback, callback_id, action_text, action_style, action_name, action_value, footer){
+        super(text, fallback, callback_id, action_text, action_style, action_name, action_value);
+        this.json = Object.assign(this.json, {
+            footer: footer
+        });
+    }
+}
+
 class trackAttachment extends buttonAttachment {
     constructor (text, fallback, callback_id, action_text, action_style, action_name, action_value,
         thumb_url, title, title_link) {
@@ -74,6 +83,13 @@ class deleteReply extends reply {
         this.json = Object.assign(this.json, {
             delete_original : true
         });
+    }
+}
+
+class deleteInChannelReply extends deleteReply {
+    constructor(text, attachments){
+        super(text, attachments);
+        this.json.response_type = "in_channel";
     }
 }
 
@@ -199,9 +215,12 @@ module.exports = {
     ack,
     ackDelete,
     buttonAttachment,
+    deleteInChannelReply,
+    deleteReply,
     dialog,
     dialogError,
     dialogParams,
+    footer_attachment,
     inChannelReply,
     postEpehemralParams,
     postParams,

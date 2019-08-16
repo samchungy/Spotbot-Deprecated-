@@ -47,6 +47,7 @@ module.exports = {
             CURRENT_TRACK: "current_track",
             HISTORY: "history",
             NAME: "name",
+            OTHER: "other",
             SEARCH: "search",
             SETTINGS : "settings",
             SKIP: "skip"
@@ -56,8 +57,8 @@ module.exports = {
             CURRENT_TRACK: "current_track",
             SKIP: "skip",
             TRACK_URI: "uri",
-            TRIGGER_ID: "trigger_id"
-
+            TRIGGER_ID: "trigger_id",
+            TYPE: "type"
         }
     },
     SPOTIFY_AUTH : {
@@ -86,11 +87,15 @@ module.exports = {
             SEE_MORE_ARTISTS: "SEEMOREARTISTS",
             SEE_MORE_BLACKLIST : "SEEMOREBLACKLIST",
             SEE_MORE_TRACKS : "SEEMORETRACKS",
+            SKIP_VOTE: "SKIP_VOTE",
             SPOTBOT_CONFIG: "SPOTBOTCONFIG",
             DELETABLE: ["ADDSONG", "BLACKLIST"]
         },
         POST : {
-            API: "https://slack.com/api/chat.postMessage"
+            API: "https://slack.com/api/chat.postMessage",
+            EPHEMERAL: {
+                API: "https://slack.com/api/chat.postEphemeral"
+            } 
         }
     }
 }
