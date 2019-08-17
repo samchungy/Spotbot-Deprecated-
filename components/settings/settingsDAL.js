@@ -66,9 +66,14 @@ function getNowPlaying(){
     return getSpotbotConfig().now_playing;
 }
 
+function getDefaultDevice(){
+    return getSpotbotConfig().deafult_device;
+}
+
 module.exports = {
     getBackToPlaylist,
     getChannel,
+    getDefaultDevice,
     getDisableRepeatsDuration,
     getNowPlaying,
     getPlaylistId,

@@ -30,7 +30,6 @@ async function findArtist(query, trigger_id, response_url) {
 async function getThreeArtists(trigger_id, page, response_url) {
     try {
         var search = artist_dal.getSearch(trigger_id);
-        console.log(search);
 
         // Searches expire after X time.
         if (search == null) {

@@ -55,7 +55,7 @@ function getChannel(){
 }
 
 function getDefaultDevice(){
-    return settings_service.getDefaultDevice();
+    return settings_dal.getDefaultDevice();
 }
 
 function getPlaylistId(){

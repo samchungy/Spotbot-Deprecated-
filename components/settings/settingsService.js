@@ -118,7 +118,6 @@ async function verifySettings(submission, response_url){
           var device_name = default_device[1];
           let player_controller = require('../spotify/player/playerController');
           if (submission.now_playing == "yes"){
-              //setNowPlaying();
               player_controller.setNowPlaying();
           } else {
               player_controller.removeNowPlaying();
@@ -161,7 +160,7 @@ async function verifySettings(submission, response_url){
 async function initialise(){
   try {
     if (getNowPlaying() == "yes"){
-      let player_controller= require('../spotify/player/playerController');
+      let player_controller = require('../spotify/player/playerController');
       await player_controller.setNowPlaying();
     }
   } catch (error) {
@@ -170,19 +169,15 @@ async function initialise(){
 }
 
 function getNowPlaying(){
-  return settings_dal.getSpotbotConfig().getNowPlaying;
+  return settings_dal.getNowPlaying();
 }
 
 function getPlaylistId(){
-  return settings_dal.getSpotbotConfig().playlist_id;
+  return settings_dal.getPlaylistId();
 }
 
 function getPlaylistLink(){
-  return settings_dal.getSpotbotConfig().playlist_link;
-}
-
-function getDefaultDevice(){
-  return settings_dal.getSpotbotConfig().default_device;
+  return settings_dal.getPlaylistLink();
 }
 
 
@@ -192,7 +187,6 @@ function isPositiveInteger(n) {
 
 module.exports = {
   initialise,
-  getDefaultDevice,
   getDeviceOptions,
   getPlaylistId,
   getPlaylistLink,
