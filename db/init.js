@@ -23,10 +23,9 @@ async function initialiseConfig() {
             db.addCollection(CONSTANTS.DB.COLLECTION.AUTH);
             return;
         }
-        let {initialiseAuth} = require('../components/spotify/auth/spotifyAuthController');
-        let {initialiseSettings} = require('../components/settings/settingsController');
-    
+        let {initialiseAuth} = require('../components/spotify/auth/spotifyAuthController');    
         await initialiseAuth();
+        let {initialiseSettings} = require('../components/settings/settingsController');
         await initialiseSettings();
         // let {initialise2} = require('../core/spotifyConfig');
         // initialise2();
