@@ -116,12 +116,6 @@ async function verifySettings(submission, response_url){
           var default_device = submission.default_device.split(":");
           var device_id = default_device[0];
           var device_name = default_device[1];
-          let player_controller = require('../spotify/player/playerController');
-          if (submission.now_playing == "yes"){
-              player_controller.setNowPlaying();
-          } else {
-              player_controller.removeNowPlaying();
-          }
           // Add to DB.
           if (spotbot_config.playlist != submission.playlist) {
               // New playlist name, see if a playlist with that name already exists on the user's account
@@ -131,6 +125,7 @@ async function verifySettings(submission, response_url){
                   if (submission.playlist == playlist.name) {
                       settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration, 
                         submission.playlist, playlist.id, playlist.external_urls.spotify, device_id, device_name, submission.channel);
+                      verifyNowPlaying(submission.now_playing)
                       await slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
                       return;
                   }
@@ -139,6 +134,7 @@ async function verifySettings(submission, response_url){
               let createdPlaylist = await player_api.createPlaylist(getSpotifyUserId(), submission.playlist);
               settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration, 
                 submission.playlist, createdPlaylist.body.id, createdPlaylist.body.external_urls.spotify, device_id, device_name, submission.channel);
+              verifyNowPlaying(submission.now_playing)
               await slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
               return;
 
@@ -146,6 +142,7 @@ async function verifySettings(submission, response_url){
           else{
               settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration,
                 submission.playlist, spotbot_config.playlist_id, spotbot_config.playlist_link, device_id, device_name, submission.channel);
+                verifyNowPlaying(submission.now_playing);
               await slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
               return;
           }
@@ -154,6 +151,15 @@ async function verifySettings(submission, response_url){
   } catch (error) {
       logger.error(`Verifying settings failed - `, error);
       slack_controller.reply(":slightly_frowning_face: Settings did not save successfully", null, response_url);
+  }
+}
+
+function verifyNowPlaying(now_playing) {
+  let player_controller = require('../spotify/player/playerController');
+  if (now_playing == "yes") {
+    player_controller.setNowPlaying();
+  } else {
+    player_controller.removeNowPlaying();
   }
 }
 
