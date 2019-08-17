@@ -5,7 +5,7 @@ const admin_controller = require('../admin/adminController');
 const blacklist_controller = require('../spotify/blacklist/blacklistController');
 const settings_controller = require('../settings/settingsController');
 const slack_controller = require('../slack/slackController');
-const spotify_auth_controller = require('../spotify/auth/spotifyAuthController.js');
+const spotify_auth_controller = require('../spotify/auth/spotifyAuthController');
 
 router.get('/auth', spotify_auth_controller.getTokens);
 
@@ -14,7 +14,7 @@ router.use(slack_controller.isFromSlack)
 
 router.post('/options', settings_controller.getOptions);
 
-router.use(spotify_auth_controller.isAuth, admin_controller.isAdmin);
+router.use(spotify_auth_controller.isAuth, admin_controller.isAdmin, settings_controller.isSettingsSet);
 
 router.post('/', async(req, res) => {
   res.send();

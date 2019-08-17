@@ -42,6 +42,18 @@ function isInChannel(req, res, next){
     }
 }
 
+function isSettingsSet(req, res, next) {
+    if (req.baseUrl == '/settings' && req.body.text == ""){
+        next(); // To get to the settings
+    }
+    else if (settings_dal.getSpotbotConfig() == null) {
+        res.send();
+        slack_controller.reply(":warning: Run `/spotbot settings` to setup Spotbot", null, req.body.response_url);
+    } else {
+        next();
+    }
+}
+
 async function initialiseSettings(){
     try {
         await settings_service.initialise();
@@ -84,6 +96,7 @@ function getSkipVotes(){
 
 module.exports = {
     isInChannel,
+    isSettingsSet,
     initialiseSettings,
     getBackToPlaylist,
     getChannel,

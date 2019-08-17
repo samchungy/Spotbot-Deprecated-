@@ -11,7 +11,7 @@ const slack_controller = require('../slack/slackController');
 const spotify_auth_controller = require('./auth/spotifyAuthController');
 const tracks_controller = require('./tracks/tracksController');
 
-router.use(slack_controller.isFromSlack, spotify_auth_controller.isAuth);
+router.use(slack_controller.isFromSlack, spotify_auth_controller.isAuth, settings_controller.isSettingsSet);
 
 router.post('/slack/actions', async (req, res) => {
     var payload = JSON.parse(req.body.payload);
