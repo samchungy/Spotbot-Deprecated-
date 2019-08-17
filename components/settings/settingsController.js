@@ -43,7 +43,7 @@ function isInChannel(req, res, next){
 }
 
 function isSettingsSet(req, res, next) {
-    if (req.baseUrl == '/settings' && (req.body.text == "" || req.body.text == "auth")){
+    if (req.baseUrl == '/settings' && (req.body.text == "settings" || req.body.text == "auth")){
         next(); // To get to the settings
     }
     else if (settings_dal.getSpotbotConfig() == null) {
