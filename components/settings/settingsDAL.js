@@ -67,7 +67,7 @@ function getNowPlaying(){
 }
 
 function getDefaultDevice(){
-    return getSpotbotConfig().deafault_device;
+    return getSpotbotConfig().default_device;
 }
 
 module.exports = {
