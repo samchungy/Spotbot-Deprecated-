@@ -131,7 +131,7 @@ async function verifySettings(submission, response_url){
                   if (submission.playlist == playlist.name) {
                       settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration, 
                         submission.playlist, playlist.id, playlist.external_urls.spotify, device_id, device_name, submission.channel);
-                      slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
+                      await slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
                       return;
                   }
               }
@@ -139,14 +139,14 @@ async function verifySettings(submission, response_url){
               let createdPlaylist = await player_api.createPlaylist(getSpotifyUserId(), submission.playlist);
               settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration, 
                 submission.playlist, createdPlaylist.body.id, createdPlaylist.body.external_urls.spotify, device_id, device_name, submission.channel);
-              slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
+              await slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
               return;
 
           }
           else{
               settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration,
                 submission.playlist, spotbot_config.playlist_id, spotbot_config.playlist_link, device_id, device_name, submission.channel);
-              slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
+              await slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
               return;
           }
       }
@@ -178,6 +178,10 @@ function getPlaylistId(){
 
 function getPlaylistLink(){
   return settings_dal.getPlaylistLink();
+}
+
+function getDefaultDevice(){
+  return settings_dal.getSpotbotConfig();
 }
 
 
