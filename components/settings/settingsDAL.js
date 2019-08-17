@@ -62,10 +62,15 @@ function getSkipVotes(){
     return getSpotbotConfig().skip_votes;
 }
 
+function getNowPlaying(){
+    return getSpotbotConfig().now_playing;
+}
+
 module.exports = {
     getBackToPlaylist,
     getChannel,
     getDisableRepeatsDuration,
+    getNowPlaying,
     getPlaylistId,
     getPlaylistLink,
     getPlaylistName,

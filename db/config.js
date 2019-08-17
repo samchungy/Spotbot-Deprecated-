@@ -1,5 +1,5 @@
 const CONSTANTS = require('../constants');
-const init = require('./init2');
+const init = require('./init');
 const {db} = init;
 
 /**

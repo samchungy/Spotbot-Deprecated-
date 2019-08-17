@@ -1,14 +1,6 @@
 const _ = require('lodash');
 
+var test = ['abc', 'def'];
 
-class test {
-    constructor(a, b, c){
-        this.a = a;
-    }
-}
+console.log(_.map(test, _.startCase));
 
-_.forEach(test, (value, key) => {
-    test[key] = 'value'
-})
-
-console.log(new test('1'));

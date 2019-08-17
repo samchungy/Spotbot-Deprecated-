@@ -42,6 +42,14 @@ function isInChannel(req, res, next){
     }
 }
 
+async function initialiseSettings(){
+    try {
+        await settings_service.initialise();
+    } catch (error) {
+        logger.error("Intialising settings failed - ", error);
+    }
+}
+
 function getChannel(){
     return settings_dal.getChannel();
 }
@@ -76,6 +84,7 @@ function getSkipVotes(){
 
 module.exports = {
     isInChannel,
+    initialiseSettings,
     getBackToPlaylist,
     getChannel,
     getDefaultDevice,

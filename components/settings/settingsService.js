@@ -116,11 +116,12 @@ async function verifySettings(submission, response_url){
           var default_device = submission.default_device.split(":");
           var device_id = default_device[0];
           var device_name = default_device[1];
-
+          let player_controller = require('../spotify/player/playerController');
           if (submission.now_playing == "yes"){
               //setNowPlaying();
+              player_controller.setNowPlaying();
           } else {
-              //removeNowPlaying();
+              player_controller.removeNowPlaying();
           }
           // Add to DB.
           if (spotbot_config.playlist != submission.playlist) {
@@ -152,8 +153,24 @@ async function verifySettings(submission, response_url){
       }
   
   } catch (error) {
-      logger.error(`Verifying settings failed`, error);
+      logger.error(`Verifying settings failed - `, error);
+      slack_controller.reply(":slightly_frowning_face: Settings did not save successfully", null, response_url);
   }
+}
+
+async function initialise(){
+  try {
+    if (getNowPlaying() == "yes"){
+      let player_controller= require('../spotify/player/playerController');
+      await player_controller.setNowPlaying();
+    }
+  } catch (error) {
+    logger.error("Initialise failed - ", error);
+  }
+}
+
+function getNowPlaying(){
+  return settings_dal.getSpotbotConfig().getNowPlaying;
 }
 
 function getPlaylistId(){
@@ -174,10 +191,11 @@ function isPositiveInteger(n) {
 }
 
 module.exports = {
-  settings,
+  initialise,
   getDefaultDevice,
   getDeviceOptions,
   getPlaylistId,
   getPlaylistLink,
+  settings,
   verifySettings
 }

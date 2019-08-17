@@ -30,7 +30,7 @@ function getCurrent(){
 function createCurrent(){
     let current_track = getCurrent();
     if (current_track == null){
-        current_track.createOther(CONSTANTS.DB.COLLECTION.CURRENT_TRACK);
+        tracks.createOther(CONSTANTS.DB.COLLECTION.CURRENT_TRACK);
         return;
     }
 }

@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const schedule = require('node-schedule');
 
 const player_api = require('./playerAPI');
 const player_dal = require('./playerDAL');
@@ -241,8 +242,8 @@ async function reset(response_url, user_id) {
 
 async function setNowPlaying(){
     try {
-        let channel_id = settings_controller.getChannel()
-        logger.info("Setting now playing Cronjob");
+        let channel_id = settings_controller.getChannel();
+        let playlist_id = settings_controller.getPlaylistId();
         schedule.scheduleJob(CONSTANTS.CRONJOBS.NOW_PLAYING, '*/10 * * * * *', async () => {
             try {
                 let current_track = await player_api.getPlayingTrack();
@@ -250,10 +251,14 @@ async function setNowPlaying(){
                     return;
                 }
                 var current = player_dal.getCurrent();
+                if (current == null){
+                    player_dal.createCurrent();
+                    current = player_dal.getCurrent();
+                }
                 if (!current || current_track.body.item.uri != current.uri){
                     player_dal.updateCurrent(current_track.body.item.uri);
-                    if (onPlaylist(current_track.body.context)){
-                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`);
+                    if (onPlaylist(current_track.body.context, playlist_id)){
+                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist.`);
                     } else {
                         slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}.`);
                     }

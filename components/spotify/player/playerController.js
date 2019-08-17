@@ -69,7 +69,25 @@ async function reset (payload){
         logger.info("Reset Confirmed");
         await player_service.reset(payload.response_url, payload.user.id);
     } catch (error) {
-        logger.error("Failed to reset", error);
+        logger.error("Failed to reset - ", error);
+    }
+}
+
+async function setNowPlaying(){
+    try {
+        logger.info("Setting now playing cronjob");
+        await player_service.setNowPlaying();
+    } catch (error) {
+        logger.error("Setting now playing cronjob failed - ", error);
+    }
+}
+
+async function removeNowPlaying(){
+    try {
+        logger.info("Setting now playing cronjob");
+        await player_service.removeNowPlaying();
+    } catch (error) {
+        logger.error("Setting now playing cronjob failed - ", error);
     }
 }
 
@@ -78,7 +96,9 @@ module.exports = {
     onPlaylist,
     play,
     pause,
+    removeNowPlaying,
     reset,
+    setNowPlaying,
     startReset,
     startVoteToSkip,
     voteToSkip
