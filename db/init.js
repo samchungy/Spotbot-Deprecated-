@@ -2,13 +2,13 @@ const CONSTANTS = require('../constants');
 const loki = require('lokijs');
 const logger = require('../log/winston');
 
-const db = new loki(CONSTANTS.CONFIG_FILE, {
+const db = new loki(CONSTANTS.DB.SETTINGS_FILE, {
     autoload: true,
     autoloadCallback: initialiseConfig,
     autosave: true
 });
 
-const db2 = new loki(CONSTANTS.TRACKS_FILE, {
+const db2 = new loki(CONSTANTS.DB.SPOTIFY_FILE, {
     autoload: true,
     autoloadCallback: initialiseTracks,
     autosave: true
@@ -27,6 +27,8 @@ async function initialiseConfig() {
         await initialiseAuth();
         let {initialiseSettings} = require('../components/settings/settingsController');
         await initialiseSettings();
+        let {initialiseClear} = require('../components/spotify/tracks/tracksController');
+        await initialiseClear();
         // let {initialise2} = require('../core/spotifyConfig');
         // initialise2();
     } catch (error) {

@@ -38,10 +38,15 @@ function getHistory(uri){
 }
 
 function updateHistory(history){
-    return tracks.updateHistory(history);
+    tracks.updateHistory(history);
+}
+
+function clearSearches(){
+    tracks.clearSearches();
 }
 
 module.exports = {
+    clearSearches,
     createHistory,
     createSearch,
     deleteSearch,

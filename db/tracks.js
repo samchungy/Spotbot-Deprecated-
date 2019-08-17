@@ -26,6 +26,11 @@ function deleteSearch(search){
     searches.remove(search);
 }
 
+function clearSearches(){
+    let searches = getSearches();
+    searches.clear({removeIndices: true});
+}
+
 function getAllHistory(){
     return db2.getCollection(CONSTANTS.DB.COLLECTION.HISTORY);
 }
@@ -91,6 +96,7 @@ function deleteBlacklist(blacklist){
 }
 
 module.exports = {
+    clearSearches,
     createBlacklist,
     createHistory,
     createOther,

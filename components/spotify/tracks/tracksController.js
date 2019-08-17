@@ -54,11 +54,20 @@ async function whom(req, res){
     }
 }
 
+async function initialiseClear(req, res){
+    try {
+        await tracks_service.initaliseSearchClear();
+    } catch (error) {
+        logger.error("Initialise clear failed - ", error);
+    }
+}
+
 module.exports = {
     addTrack,
     deleteOrAckReply,
     find,
     findArtistTracks,
+    initialiseClear,
     seeMoreTracks,
     whom
 }

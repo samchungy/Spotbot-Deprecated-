@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const moment = require('moment');
+const schedule = require('node-schedule');
 
 const logger = require('../../../log/winston');
 const tracks_api = require('./tracksAPI');
@@ -245,9 +246,30 @@ async function whom(response_url) {
     return; 
 }
 
+async function initaliseSearchClear(){
+    try {
+        logger.info("Clear searches cron job set");
+        schedule.scheduleJob(CONSTANTS.CRONJOBS.SEARCH_CLEAR, '0 2 * * 1', async () => {
+            try {
+                let channel_id = settings_controller.getChannel();
+                // Check if settings are set.
+                if (channel_id != null){
+                    tracks_dal.clearSearches();
+                }
+            } catch (error) {
+                logger.error(`Clear searches cron job Failed`, error);
+            }
+        });
+    
+    } catch (error) {
+        logger.error("Clear searches cron job Failed - ", error);
+    }
+}
+
 module.exports = {
     addTrack,
     find,
+    initaliseSearchClear,
     getThreeTracks,
     whom
 }
