@@ -365,7 +365,7 @@ async function artistToFindTrack(trigger_id, query, response_url){
         }
         await find(query, trigger_id, response_url);
     } catch (error) {
-        logger.error(`Artist to find track failed`, error);
+        logger.error(`Artist to find track failed - `, error);
     }
 
 }
@@ -641,7 +641,9 @@ async function listBlacklist(response_url){
         let blacklist_sorted  = _.orderBy(blacklist, ['artist'],['asc']);
         var options = [];
         for (let track of blacklist_sorted){
-           options.push(slack.selectOption(track.uri, `${track.artist} - ${track.name}`));
+           options.push(
+               slack.selectOption(track.uri, `${track.artist} - ${track.name}`)
+            );
         }
         var attachment = slack.selectAttachment(`Blacklist tracks`, CONSTANTS.BLACKLIST_REMOVE, CONSTANTS.BLACKLIST_REMOVE, null, options);
         await slack.sendEphemeralReply("Select the song you would like to remove from the Blacklist", [attachment], response_url);

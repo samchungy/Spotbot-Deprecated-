@@ -30,7 +30,7 @@ async function getPlaylist(playlist_id){
 async function getSearchTracks(query){
     try {
         return await spotify_api.searchTracks(query, {
-            limit: 21
+            limit: 30
         });
     } catch (error) {
         logger.error(`Spotify API: Get Search Tracks failed.`, error);

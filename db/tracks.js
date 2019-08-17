@@ -42,7 +42,7 @@ function getHistory(uri){
 
 function updateHistory(history){
     let all_history = getAllHistory();
-    all_history.insert(history);
+    all_history.update(history);
 }
 
 function getOtherCollection(){
@@ -66,8 +66,28 @@ function updateOther(other_object){
     other.update(other_object);
 }
 
-function getSkip(){
-    return db2.getCollection(CONSTANTS.DB.COLLECTION.OTHER);
+function getAllBlacklist(){
+    return db2.getCollection(CONSTANTS.DB.COLLECTION.BLACKLIST);
+}
+
+function createBlacklist(blacklist){
+    let blacklists = getAllBlacklist();
+    blacklists.insert(blacklist);
+}
+
+function getBlacklist(uri){
+    let blacklists = getAllBlacklist()
+    return blacklists.findOne( {[CONSTANTS.DB.KEY.TRACK_URI]: uri} );
+}
+
+function getAllBlacklists(){
+    let blacklists = getAllBlacklist();
+    return blacklists.find();
+}
+
+function deleteBlacklist(blacklist){
+    let blacklists = getAllBlacklist();
+    blacklists.remove(blacklist);
 }
 
 // function getCurrent(){
@@ -181,36 +201,15 @@ function getSkip(){
 //     searches.clear( {removeIndices: true} );
 // }
 
-// function setBlacklist(uri, artist, name){
-//     var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
-//     blacklist.insert({
-//         uri: uri,
-//         name: name,
-//         artist: artist
-//     });
-// }
-
-// function getAllBlacklist(){
-//     var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
-//     return blacklist.find();
-// }
-
-// function getBlacklist(uri){
-//     var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
-//     return blacklist.findOne( {uri: uri} );
-// }
-
-// function removeBlacklist(track){
-//     var blacklist = db2.getCollection(CONSTANTS.BLACKLIST);
-//     blacklist.remove(track);
-//     return;
-// }
-
 module.exports = {
+    createBlacklist,
     createHistory,
     createOther,
     createSearch,
+    deleteBlacklist,
     deleteSearch,
+    getAllBlacklists,
+    getBlacklist,
     getHistory,
     getOther,
     getSearch,

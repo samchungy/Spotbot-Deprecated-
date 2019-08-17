@@ -212,12 +212,84 @@ async function startVoteToSkip(slack_user, response_url){
     await slack_controller.reply(":slightly_frowning_face: Failed to process skip command", null, response_url);
 }
 
+async function startReset (response_url){
+    try {
+        await slack_controller.reply(`:rotating_light: Are you sure you want to clear the playlist?`, 
+            [new slack_formatter.buttonAttachment("", 
+                ":rotating_light: Are you sure you want to clear the playlist?", CONSTANTS.SLACK.PAYLOAD.RESET, "Yes I am sure",
+                    CONSTANTS.SLACK.BUTTON_STYLE.DANGER, CONSTANTS.SLACK.PAYLOAD.RESET, CONSTANTS.SLACK.PAYLOAD.RESET).json], response_url);
+        return;
+    } catch (error) {
+        logger.error("Reset request failed", error)
+    }
+}
+
+async function reset(response_url, user_id) {
+    try {
+        var playlist_id = settings_controller.getPlaylistId();
+        var channel_id = settings_controller.getChannel();
+    
+        await player_api.reset(playlist_id);
+        await slack_controller.reply(":rotating_light: Are you sure you want to clear the playlist?", 
+            [new slack_formatter.attachment(":boom: Done", "Done", null).json], response_url);
+        await slack_controller.post(channel_id, `:boom: The playlist has been nuked by <@${user_id}>`);
+    } catch (error) {
+        logger.error("Reset confirmation failed. ", error);
+    }
+
+}
+
+async function setNowPlaying(){
+    try {
+        let channel_id = settings_controller.getChannel()
+        logger.info("Setting now playing Cronjob");
+        schedule.scheduleJob(CONSTANTS.CRONJOBS.NOW_PLAYING, '*/10 * * * * *', async () => {
+            try {
+                let current_track = await player_api.getPlayingTrack();
+                if (current_track.statusCode == 204){
+                    return;
+                }
+                var current = player_dal.getCurrent();
+                if (!current || current_track.body.item.uri != current.uri){
+                    player_dal.updateCurrent(current_track.body.item.uri);
+                    if (onPlaylist(current_track.body.context)){
+                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`);
+                    } else {
+                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}.`);
+                    }
+                }
+            } catch (error) {
+                logger.error(`Now Playing Cron Job Failed`, error);
+            }
+        });
+    
+    } catch (error) {
+        logger.error("Setting now playing failed - ", error);
+    }
+}
+
+function removeNowPlaying(){
+    try {
+        logger.info("Removing now playing");
+        var j = schedule.scheduledJobs[CONSTANTS.CRONJOBS.NOW_PLAYING]
+        if (j){
+            j.cancel();
+        }
+    } catch (error) {
+        logger.error("Failed to cancel now playing cronjob - ", error);
+    }
+}
+
 module.exports = {
     getCurrentPlaylist,
     getCurrentTrack,
     onPlaylist,
     pause,
     play,
+    removeNowPlaying,
+    reset,
+    setNowPlaying,
+    startReset,
     startVoteToSkip,
     voteToSkip
 }

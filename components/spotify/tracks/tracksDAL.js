@@ -47,5 +47,6 @@ module.exports = {
     deleteSearch,
     getHistory,
     getSearch,
+    updateHistory,
     updateSearch
 }

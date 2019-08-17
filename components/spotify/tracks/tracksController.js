@@ -10,7 +10,15 @@ async function find(req, res){
     } catch (error) {
         logger.error(`Finding song failed`, error);
     }
+}
 
+
+async function findArtistTracks(text, trigger_id, response_url){
+    try {
+        await tracks_service.find(text, trigger_id, response_url);
+    } catch (error) {
+        logger.error(`Finding song failed`, error);
+    }
 }
 
 function deleteOrAckReply(req, res, name){
@@ -23,7 +31,6 @@ function deleteOrAckReply(req, res, name){
 
 async function seeMoreTracks(payload){
     try {
-
         await tracks_service.getThreeTracks(payload.callback_id, payload.actions[0].value, payload.response_url);
     } catch (error) {
         logger.error("See more tracks failed", error);
@@ -51,6 +58,7 @@ module.exports = {
     addTrack,
     deleteOrAckReply,
     find,
+    findArtistTracks,
     seeMoreTracks,
     whom
 }

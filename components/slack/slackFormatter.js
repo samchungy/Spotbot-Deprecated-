@@ -193,6 +193,15 @@ class selectDialogOption {
     }
 }
 
+class selectOption {
+    constructor (text, value){
+        this.json = {
+            text: text,
+            value: value
+        }
+    }
+}
+
 class dialogError {
     constructor(name, error){
         this.json = {
@@ -214,6 +223,7 @@ function ackDelete(){
 module.exports = {
     ack,
     ackDelete,
+    attachment,
     buttonAttachment,
     deleteInChannelReply,
     deleteReply,
@@ -225,8 +235,10 @@ module.exports = {
     postEpehemralParams,
     postParams,
     reply,
+    selectAttachment,
     selectDialogElement,
     selectDialogOption,
+    selectOption,
     selectSlackDialogElement,
     textDialogElement,
     trackAttachment,

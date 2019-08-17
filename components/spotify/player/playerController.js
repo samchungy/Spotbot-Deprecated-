@@ -55,12 +55,31 @@ function onPlaylist(context, playlist_id){
     return player_service.onPlaylist(context, playlist_id)
 }
 
+async function startReset (req, res) {
+    try {
+        logger.info("Reset requested");
+        await player_service.startReset(req.body.response_url);
+    } catch (error) {
+        logger.error("Failed to request reset", error);
+    }
+  }
+
+async function reset (payload){
+    try {
+        logger.info("Reset Confirmed");
+        await player_service.reset(payload.response_url, payload.user.id);
+    } catch (error) {
+        logger.error("Failed to reset", error);
+    }
+}
 
 module.exports = {
     current,
     onPlaylist,
     play,
     pause,
+    reset,
+    startReset,
     startVoteToSkip,
     voteToSkip
 }

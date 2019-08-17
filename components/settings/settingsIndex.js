@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const admin_controller = require('../admin/adminController');
+const blacklist_controller = require('../spotify/blacklist/blacklistController');
 const settings_controller = require('../settings/settingsController');
 const slack_controller = require('../slack/slackController');
 const spotify_auth_controller = require('../spotify/auth/spotifyAuthController.js');
@@ -27,6 +28,9 @@ router.post('/', async(req, res) => {
     if (array) {
       if (array[0] == "admin") {
         await admin_controller.adminMenu(req, res, array);
+      }
+      if (array[0] == "blacklist") {
+        await blacklist_controller.blacklistMenu(req, res, array);
       }
     }
   }

@@ -1,5 +1,6 @@
 const spotify_api = require('../../spotify/auth/spotifyAuthAPI').spotifyApi
 const logger = require('../../../log/winston');
+const CONSTANTS = require('../../../constants');
 
 async function getDevices(){
     try {
@@ -90,6 +91,17 @@ async function skip(){
     }
 }
 
+async function reset(playlist_id){
+    try {
+        // Bit of a meme here lol, enjoy.
+        await spotify_api.replaceTracksInPlaylist(playlist_id, [CONSTANTS.AFRICA]);
+        await spotify_api.removeTracksFromPlaylist(playlist_id, [{uri: CONSTANTS.AFRICA}]);
+    } catch (error) {
+        logger.error(`Spotify API: Reset failed. `, error);
+        throw Error(error);
+    }
+}
+
 module.exports = {
     createPlaylist,
     getAllPlaylists,
@@ -98,6 +110,7 @@ module.exports = {
     getPlayingTrack,
     pause,
     play,
+    reset,
     skip,
     transferPlayback
 }

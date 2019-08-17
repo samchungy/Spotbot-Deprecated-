@@ -5,6 +5,7 @@ const logger = require('../../../log/winston');
 const tracks_api = require('./tracksAPI');
 const tracks_dal = require('./tracksDAL');
 const {onPlaylist} = require('../player/playerController');
+const blacklist_controller = require('../blacklist/blacklistController');
 const slack_controller = require('../../slack/slackController');
 const slack_formatter = slack_controller.slack_formatter;
 const settings_controller = require('../../settings/settingsController');
@@ -64,7 +65,7 @@ async function getThreeTracks(trigger_id, page, response_url) {
         var current_tracks = search.tracks.splice(0, 3);
         var slack_attachments = []
         for (let track of current_tracks) {
-            let image = (_.get(track,"album.images")) ? track.album.images[0].url : "";
+            let image = (_.get(track,"album.images[0]")) ? track.album.images[0].url : "";
             slack_attachments.push(
                 new slack_formatter.trackAttachment(`:studio_microphone: *Artist* ${track.artists[0].name}\n\n:cd: *Album* ${track.album.name}`, 
                     `${track.artists[0].name} - ${track.name}`, trigger_id, "Add to playlist", CONSTANTS.SLACK.BUTTON_STYLE.PRIMARY, 
@@ -105,6 +106,11 @@ async function addTrack(trigger_id, track_uri, user_id) {
         var name = _.get(track, 'body.name');
         var artist = _.get(track, 'body.artists[0].name');
         var history = tracks_dal.getHistory(track_uri);
+        // Check the blacklist:
+        if (blacklist_controller.isInBlacklist(track_uri)){
+            await slack_controller.post(channel_id, `:no_entry: ${artist} - ${name} is blacklisted.`);
+            return
+        }
         // Look for existing song
         if (history == null) {
             // Insert a new history record.
@@ -112,13 +118,13 @@ async function addTrack(trigger_id, track_uri, user_id) {
         } else {
             // Update history record with new user
             if (disable_repeats_duration){
-                if (await isRepeat(disable_repeats_duration, history.time)){
-                    await slack_controller.post(channel_id, `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(history.time)).humanize()} ago.`);
+                if (await isRepeat(disable_repeats_duration, history.time_added)){
+                    await slack_controller.post(channel_id, `:no_entry: ${artist} - ${name} was already added around ${moment.duration(moment().diff(history.time_added)).humanize()} ago.`);
                     return
                 }
             }
             history.user_id = user_id;
-            history.time = moment();
+            history.time_added = moment();
             tracks_dal.updateHistory(history);
         }
         // Free up memory, remove search from tracks.
@@ -227,7 +233,7 @@ async function whom(response_url) {
                         return;            
                     }
                     else{
-                        await slack_controller.reply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was last added ${moment(previous_track.time).fromNow()} by <@${previous_track.user_id}>.`, null, response_url);
+                        await slack_controller.reply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was last added ${moment(previous_track.time_added).fromNow()} by <@${previous_track.user_id}>.`, null, response_url);
                         return;
                     }
                 }
