@@ -34,7 +34,7 @@ module.exports = {
     BLACKLIST_REMOVE: "blacklist_remove",
     CRONJOBS : {
         REFRESH: "REFRESH_CRONJOB",
-        TENSECOND: "TEN_SECOND_CRONJOB"
+        NOW_PLAYING: "NOW_PLAYING_CRONJOB"
     },
     DB : {
         SETTINGS_FILE: "settings.db",
@@ -67,6 +67,7 @@ module.exports = {
     SLACK : {
         BUTTON_STYLE: {
             PRIMARY: "primary",
+            DANGER: "danger"
         },
         DIALOG: {
             API: "https://slack.com/api/dialog.open",
@@ -84,11 +85,13 @@ module.exports = {
             ADD_SONG : "ADDSONG",
             BLACKLIST : "BLACKLIST",
             BLACKLIST_REMOVE: "BLACKLIST_REMOVE",
+            RESET: "RESET",
             SEE_MORE_ARTISTS: "SEEMOREARTISTS",
             SEE_MORE_BLACKLIST : "SEEMOREBLACKLIST",
             SEE_MORE_TRACKS : "SEEMORETRACKS",
             SKIP_VOTE: "SKIP_VOTE",
             SPOTBOT_CONFIG: "SPOTBOTCONFIG",
+            VIEW_ARTIST : "VIEWARTIST",
             DELETABLE: ["ADDSONG", "BLACKLIST"]
         },
         POST : {
