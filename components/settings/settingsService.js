@@ -165,7 +165,7 @@ function verifyNowPlaying(now_playing) {
 
 async function initialise(){
   try {
-    if (getNowPlaying() == "yes"){
+    if (settings_dal.getSpotbotConfig() && getNowPlaying() == "yes"){
       let player_controller = require('../spotify/player/playerController');
       await player_controller.setNowPlaying();
     }
