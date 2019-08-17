@@ -156,38 +156,6 @@ async function verifySettings(submission, response_url){
   }
 }
 
-function setNowPlaying() {
-  logger.info("Now Playing Set");
-  schedule.scheduleJob(CONSTANTS.CRONJOB2, '*/10 * * * * *', async () => {
-      try {
-          let current_track = await spotify_player.getPlayingTrack();
-          if (current_track.statusCode == 204){
-              return;
-          }
-          var current = tracks.getCurrent();
-          if (!current || current_track.body.item.uri != current.uri){
-              tracks.setCurrent(current_track.body.item.uri);
-              if (onPlaylist(current_track.body.context)){
-                  slack.post(getChannel(), `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`);
-              } else {
-                  slack.post(getChannel(), `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}.`)
-              }
-          }
-      } catch (error) {
-          logger.error(`Now Playing Cron Job Failed`, error);
-      }
-
-  });
-}
-
-function removeNowPlaying(){
-  logger.info("Removing now playing");
-  var j = schedule.scheduledJobs[CONSTANTS.CRONJOB2]
-  if (j){
-      j.cancel();
-  }
-}
-
 function getPlaylistId(){
   return settings_dal.getSpotbotConfig().playlist_id;
 }
