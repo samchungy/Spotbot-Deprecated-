@@ -34,6 +34,8 @@ async function play(response_url) {
             return;
         }
         const default_device = settings_controller.getDefaultDevice();
+	console.log(default_device);
+	console.log(device_list.body.devices);
         let device = _.find(device_list.body.devices, {
             id: default_device
         });
@@ -137,7 +139,7 @@ async function voteToSkip(slack_user, track_uri, response_url){
 
         var skip = player_dal.getSkip();
         let current_track = await player_api.getPlayingTrack();
-        if (skip.uri != track_uri || _.get(current_track,'body.item.uri') != skip.uri){
+        if (skip == null || skip.uri != track_uri || _.get(current_track,'body.item.uri') != skip.uri){
             await slack_controller.inChannelReply(":information_source: This vote has expired.", null, response_url);
             return;
         }
