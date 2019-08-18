@@ -22,6 +22,8 @@ async function isAdmin(req, res, next) {
     try {
         if (await admin_service.isAdmin(req.body.user_name, req.body.response_url)){
             next();
+        } else {
+            res.send();
         }
     } catch (error) {
         logger.error(`Failed to check for admin.`, error);
