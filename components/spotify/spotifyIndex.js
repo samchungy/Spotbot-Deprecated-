@@ -11,7 +11,7 @@ const slack_controller = require('../slack/slackController');
 const spotify_auth_controller = require('./auth/spotifyAuthController');
 const tracks_controller = require('./tracks/tracksController');
 
-router.use(slack_controller.isFromSlack, spotify_auth_controller.isAuth, settings_controller.isSettingsSet);
+router.use(slack_controller.isFromSlack, spotify_auth_controller.isAuth);
 
 router.post('/slack/actions', async (req, res) => {
     var payload = JSON.parse(req.body.payload);
@@ -41,7 +41,7 @@ router.post('/slack/actions', async (req, res) => {
     }
 });
 
-router.use(settings_controller.isInChannel, slack_controller.ack);
+router.use(settings_controller.isSettingsSet, settings_controller.isInChannel, slack_controller.ack);
 
 // Play, pause
 router.post('/player/pause', player_controller.pause);
