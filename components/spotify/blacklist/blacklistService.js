@@ -18,7 +18,8 @@ async function blacklistCurrent(user_id, response_url) {
         }
         if (blacklist_dal.getBlacklist(current_track.body.item.uri) == null) {
             blacklist_dal.createBlacklist(current_track.body.item.uri, current_track.body.item.name, current_track.body.item.artists[0].name);
-            await slack_controller.post(channel_id, `:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was blacklisted by <@${user_id}>`);
+            await blacklist_api.skip();
+            await slack_controller.post(channel_id, `:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was blacklisted and skipped by <@${user_id}>`);
             return;
         } else {
             await slack_controller.reply(`:interrobang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} is already blacklisted.`, null, response_url);
