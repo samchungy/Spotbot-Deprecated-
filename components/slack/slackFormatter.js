@@ -5,7 +5,8 @@ class attachment {
         this.json = {
             text: text,
             fallback: fallback,
-            callback_id : callback_id
+            callback_id : callback_id,
+            mrkdwn_in: ["text"]
         }
     }
 }
@@ -72,7 +73,8 @@ class reply {
     constructor (text, attachments) {
         this.json = _.pickBy({
             text: text,
-            attachments: attachments
+            attachments: attachments,
+            mrkdwn: true 
         });
     }
 }
@@ -126,7 +128,8 @@ class postParams {
         this.json = {
             token: token,
             channel: channel_id,
-            text: text
+            text: text,
+            mrkdwn: true
         }
     }
 }
