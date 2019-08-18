@@ -91,14 +91,14 @@ async function getCurrentTrack(response_url){
         let playlist_id = settings_controller.getPlaylistId();
         let current_track = await player_api.getPlayingTrack();
         if (current_track.statusCode == 204){
-            await slack_controller.reply(":information_source: Spotify is currently not playing", null, response_url);
+            await slack_controller.inChannelReply(":information_source: Spotify is currently not playing", null, response_url);
             return;
         }
         if (onPlaylist(current_track.body.context, playlist_id)){
-            await slack_controller.reply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`, null, response_url);
+            await slack_controller.inChannelReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`, null, response_url);
             return;
         } else {
-            await slack_controller.reply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
+            await slack_controller.inChannelReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
             return;
         }
     } catch (error) {
