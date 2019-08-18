@@ -1,4 +1,5 @@
 module.exports = {
+    AFRICA: "spotify:track:2374M0fQpWi3dLnB54qaLX",
     SCOPES : ['user-read-recently-played',
         'user-read-playback-state',
         'user-modify-playback-state',
