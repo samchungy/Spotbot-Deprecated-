@@ -48,6 +48,21 @@ This was created in my spare time after work to add additional functionality to 
 * spotify-web-api-node - Custom fork.
 * winston
 
+### Features
+
+* Create a playlist.
+* Find a track by Artist or Track Name.
+* Vote to skip a song with a customisable number of votes.
+* Reset a playlist.
+* Find out who requested a song.
+* Find the current song or playlist playing.
+* Set a now playing status.
+* Blacklist a song.
+* Restrict usage of commands to a particular channel.
+* Disable repeat additions of a song.
+* Return to the playlist when a song is added. By default Spotify plays a radio based on the songs currently in your playlist. This feature enables Spotify to return back to the playlist automatically when a song is added. This does not work if repeat playlist is enabled.
+
+
 <!-- GETTING STARTED -->
 ## Getting Started
 
@@ -76,9 +91,9 @@ SLACK_TOKEN=XXX
 SLACK_SIGNING_SECRET=XXX
 ```
 
-### Usage
+## Usage
 
-# Commands
+### Commands
 * `/artist [artist name]` - Finds an artist on Spotify
 * `/current track | playlist` - Find the current track/playlist playing
 * `/find [track_name]` - Finds a track on Spotify
@@ -86,9 +101,9 @@ SLACK_SIGNING_SECRET=XXX
 * `/play` - Plays Spotify
 * `/reset` - Sets the Spotify playlist to blank
 * `/skip` - Starts a vote to Skip.
-* `/spotbot auth | settings | admin (add | list | remove) | blacklist (current | remove)
+* `/spotbot auth | settings | admin (add | list | remove) | blacklist (current | remove)` - Spotbot Admin panel
 * `/whom` - Find out who requested a particular song. 
 
-### Contact
+## Contact
 
 Sam Chung - samchungy@gmail.com
