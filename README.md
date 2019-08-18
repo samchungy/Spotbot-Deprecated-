@@ -1,10 +1,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/github_username/repo">
-    <img src="https://raw.githubusercontent.com/samchungy/Spotbot/master/Spotbot-logo.png" alt="Logo" width="80" height="80">
-  </a>
-
+    <img src="https://raw.githubusercontent.com/samchungy/Spotbot/master/Spotbot-logo.png" alt="Logo" width="100" height="100">
   <h3 align="center">Spotbot</h3>
 
   <p align="center">
