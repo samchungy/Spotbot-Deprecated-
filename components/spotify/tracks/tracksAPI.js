@@ -87,6 +87,13 @@ async function getTrack(track_id){
     }
 }
 
+async function getUserProfile(user_id){
+    try {
+        return await spotify_api.getUser(user_id);
+    } catch (error) {
+        logger.error(`Spotify API: Get User Profile failed. - `, error);
+    }
+}
 
 module.exports = {
     addTracks,
@@ -95,6 +102,7 @@ module.exports = {
     getPlaylistTracks,
     getSearchTracks,
     getTrack,
+    getUserProfile,
     pause,
     playWithContext
 }
