@@ -95,10 +95,10 @@ async function getCurrentTrack(response_url){
             return;
         }
         if (onPlaylist(current_track.body.context, playlist_id)){
-            await slack_controller.inChannelReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist`, null, response_url);
+            await slack_controller.inChannelReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""} from the Spotify playlist`, null, response_url);
             return;
         } else {
-            await slack_controller.inChannelReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
+            await slack_controller.inChannelReply(`:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""}`, null, response_url);
             return;
         }
     } catch (error) {
@@ -260,9 +260,9 @@ async function setNowPlaying(){
                 if (!current || current_track.body.item.uri != current.uri){
                     player_dal.updateCurrent(current_track.body.item.uri);
                     if (onPlaylist(current_track.body.context, playlist_id)){
-                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} from the Spotify playlist.`);
+                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""} from the Spotify playlist.`);
                     } else {
-                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}.`);
+                        slack_controller.post(channel_id, `:loud_sound: *Now Playing:* ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""}.`);
                     }
                 }
             } catch (error) {
