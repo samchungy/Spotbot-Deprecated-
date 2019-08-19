@@ -70,7 +70,7 @@ async function getThreeTracks(trigger_id, page, response_url) {
             slack_attachments.push(
                 new slack_formatter.trackAttachment(`:studio_microphone: *Artist* ${track.artists[0].name}\n\n:cd: *Album* ${track.album.name}`, 
                     `${track.artists[0].name} - ${track.name}`, trigger_id, "Add to playlist", CONSTANTS.SLACK.BUTTON_STYLE.PRIMARY, 
-                        CONSTANTS.SLACK.PAYLOAD.ADD_SONG, track.uri, image, track.name, track.external_urls.spotify).json
+                        CONSTANTS.SLACK.PAYLOAD.ADD_SONG, track.uri, image, `${track.name}${track.explicit ? " (Explicit)" : ""}`, track.external_urls.spotify).json
             );
         }
         // Update DB
@@ -104,7 +104,7 @@ async function addTrack(trigger_id, track_uri, user_id) {
 
         var track_id = track_uri.match(/[^:]+$/)[0];
         let track = await tracks_api.getTrack(track_id);
-        var name = _.get(track, 'body.name');
+        var name = `${_.get(track, 'body.name')}${track.body.explicit ? " (Explicit)" : ""}`;
         var artist = _.get(track, 'body.artists[0].name');
         var history = tracks_dal.getHistory(track_uri);
         // Check the blacklist:
