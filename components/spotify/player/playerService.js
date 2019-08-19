@@ -113,7 +113,7 @@ async function getCurrentPlaylist(response_url){
     try {
         var current_playlist = settings_controller.getPlaylistName();
         var playlist_link = settings_controller.getPlaylistLink();
-        await slack_controller.reply(`:notes: Currently playing from Spotify playlist: <${playlist_link}|${current_playlist}>`, null, response_url); 
+        await slack_controller.inChannelReply(`:notes: Currently playing from Spotify playlist: <${playlist_link}|${current_playlist}>`, null, response_url); 
         return;
     } catch (error) {
         logger.error(`Get current playlist failed`, error);
