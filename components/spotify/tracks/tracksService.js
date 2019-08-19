@@ -204,12 +204,12 @@ async function whom(response_url) {
         var playlist_id = settings_controller.getPlaylistId()
         let current_track = await tracks_api.getPlayingTrack();
         if (current_track.statusCode == 204){
-            await slack_controller.reply(":information_source: Spotify is currently not playing.", null, response_url);
+            await slack_controller.inChannelReply(":information_source: Spotify is currently not playing.", null, response_url);
             return;
         }
         // Check if Spotify is playing from the playlist.
         if(!onPlaylist(current_track.body.context, playlist_id)){
-            await slack_controller.reply(`:information_source: Spotify is not playing from the playlist. Current Song: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
+            await slack_controller.inChannelReply(`:information_source: Spotify is not playing from the playlist. Current Song: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}`, null, response_url);
             return;
 
         }
@@ -231,11 +231,11 @@ async function whom(response_url) {
                     let found_track = track_list[index];
                     if (previous_track == null || found_track.added_by.id != spotify_user_id) {
                         let user_profile = await tracks_api.getUserProfile(found_track.added_by.id);
-                        await slack_controller.reply(`:white_frowning_face: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was added ${moment(found_track.added_at).fromNow()} directly to the playlist by <${user_profile.body.external_urls.spotify}|${user_profile.body.display_name}>.`, null, response_url);
+                        await slack_controller.inChannelReply(`:white_frowning_face: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was added ${moment(found_track.added_at).fromNow()} directly to the playlist by <${user_profile.body.external_urls.spotify}|${user_profile.body.display_name}>.`, null, response_url);
                         return;            
                     }
                     else{
-                        await slack_controller.reply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was last added ${moment(previous_track.time_added).fromNow()} by <@${previous_track.user_id}>.`, null, response_url);
+                        await slack_controller.inChannelReply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was last added ${moment(previous_track.time_added).fromNow()} by <@${previous_track.user_id}>.`, null, response_url);
                         return;
                     }
                 }
