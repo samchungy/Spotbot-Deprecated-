@@ -231,7 +231,7 @@ async function whom(response_url) {
                     let found_track = track_list[index];
                     if (previous_track == null || found_track.added_by.id != spotify_user_id) {
                         let user_profile = await tracks_api.getUserProfile(found_track.added_by.id);
-                        await slack_controller.reply(`:white_frowning_face: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was added ${moment(found_track.added_at).fromNow()} directly to the playlist by ${user_profile.body.display_name}.`, null, response_url);
+                        await slack_controller.reply(`:white_frowning_face: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was added ${moment(found_track.added_at).fromNow()} directly to the playlist by <${user_profile.body.external_urls.spotify}|${user_profile.body.display_name}>.`, null, response_url);
                         return;            
                     }
                     else{
