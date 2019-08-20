@@ -41,15 +41,15 @@ module.exports = {
     HELP:
     `*Find a track*\n
     \`/find [track name]\` - Find a track on Spotify\n
-    \`/artist [artist name]\` - Find a track by an artist on Spotify\n` +
+    \`/artist [artist name]\` - Find a track by an artist on Spotify\n\n` +
     `*Playback Status*\n
     \`/current track|playlist\` - Show the current playing track or playlist\n
-    \`/whom\` - Show who requested the current song` +
+    \`/whom\` - Show who requested the current song\n\n` +
     `*Control*\n
     \`/play\` - Hits play on Spotify\n
     \`/pause\` - Hits pause on Spotify\n
     \`/skip\` - Vote to skip a song\n
-    \`/reset\` - Nuke the playlist\n`,
+    \`/reset\` - Nuke the playlist\n\n`,
     HELP_ADMIN:
     `*Admin Commands*\n
     \`/spotbot auth\` - Configure authorization wtih Spotify\n
