@@ -92,15 +92,25 @@ SLACK_SIGNING_SECRET=XXX
 ## Usage
 
 ### Commands
-* `/artist [artist name]` - Finds an artist on Spotify
-* `/current track | playlist` - Find the current track/playlist playing
-* `/find [track_name]` - Finds a track on Spotify
-* `/pause` - Pauses Spotify
-* `/play` - Plays Spotify
-* `/reset` - Sets the Spotify playlist to blank
-* `/skip` - Starts a vote to Skip.
-* `/spotbot auth | settings | admin (add | list | remove) | blacklist (current | remove)` - Spotbot Admin panel
-* `/whom` - Find out who requested a particular song. 
+* Find a track
+   * `/find [track name]` - Find a track on Spotify
+   * `/artist [artist name]` - Find a track by an artist on Spotify
+* Playback Status
+   * `/current track | playlist` - Show the current playing track or playlist
+   * `/whom - Show who requested` the current song
+* Control
+   * `/play` - Hits play on Spotify
+   * `/pause` - Hits pause on Spotify
+   * `/skip` - Vote to skip a song
+   * `/reset` - Nuke the playlist
+* Admin Commands
+   * `/spotbot auth` - Configure authorization wtih Spotify
+   * `/spotbot settings` - Configure Spotbot settings
+   * `/spotbot admin add [@user]` - Add a user as a Spotbot admin
+   * `/spotbot admin remove [@user]` - Remove a user as a Spotbot admin
+   * `/spotbot admin list` - List all Spotbot admins
+   * `/spotbot blacklist current` - Blacklists and skips the current song
+   * `/spotbot blacklist remove` - Lists songs to remove from the Blacklist
 
 ## Contact
 
