@@ -48,17 +48,17 @@ This was created in my spare time after work to add additional functionality to 
 
 ### Features
 
-* Create a playlist.
-* Find a track by Artist or Track Name.
-* Vote to skip a song with a customisable number of votes.
-* Reset a playlist.
-* Find out who requested a song.
+* Find a song by track name or artist.
+* Play, pause or vote to skip a track.
+* Reset the playlist
 * Find the current song or playlist playing.
+* Find out who requested a song.
 * Set a now playing status.
 * Blacklist a song.
-* Restrict usage of commands to a particular channel.
 * Disable repeat additions of a song.
-* Return to the playlist when a song is added. By default Spotify plays a radio based on the songs currently in your playlist. This feature enables Spotify to return back to the playlist automatically when a song is added. This does not work if repeat playlist is enabled.
+* Restrict usage of commands to a particular Slack channel.
+* Ability to return to the playlist when a new song is added. By default, Spotify can play a radio 
+* Return to the playlist automatically when a new song is added. _By default Spotify plays a radio based on the songs currently in your playlist when it runs out of songs_
 
 
 <!-- GETTING STARTED -->
@@ -92,15 +92,25 @@ SLACK_SIGNING_SECRET=XXX
 ## Usage
 
 ### Commands
-* `/artist [artist name]` - Finds an artist on Spotify
-* `/current track | playlist` - Find the current track/playlist playing
-* `/find [track_name]` - Finds a track on Spotify
-* `/pause` - Pauses Spotify
-* `/play` - Plays Spotify
-* `/reset` - Sets the Spotify playlist to blank
-* `/skip` - Starts a vote to Skip.
-* `/spotbot auth | settings | admin (add | list | remove) | blacklist (current | remove)` - Spotbot Admin panel
-* `/whom` - Find out who requested a particular song. 
+* Find a track
+   * `/find [track name]` - Find a track on Spotify
+   * `/artist [artist name]` - Find a track by an artist on Spotify
+* Playback Status
+   * `/current track | playlist` - Show the current playing track or playlist
+   * `/whom - Show who requested` the current song
+* Control
+   * `/play` - Hits play on Spotify
+   * `/pause` - Hits pause on Spotify
+   * `/skip` - Vote to skip a song
+   * `/reset` - Nuke the playlist
+* Admin Commands
+   * `/spotbot auth` - Configure authorization wtih Spotify
+   * `/spotbot settings` - Configure Spotbot settings
+   * `/spotbot admin add [@user]` - Add a user as a Spotbot admin
+   * `/spotbot admin remove [@user]` - Remove a user as a Spotbot admin
+   * `/spotbot admin list` - List all Spotbot admins
+   * `/spotbot blacklist current` - Blacklists and skips the current song
+   * `/spotbot blacklist remove` - Lists songs to remove from the Blacklist
 
 ## Contact
 
