@@ -14,7 +14,7 @@ async function findArtist(query, trigger_id, response_url) {
         let search_artists = _.get(search_results, 'body.artists.items');
         if (search_artists.length == 0) {
             //No Artists found
-            await slack_controller.reply(`:slightly_frowning_face: No artists found for the search term "${query}". Try another search?`, response_url);
+            await slack_controller.reply(`:slightly_frowning_face: No artists found for the search term "${query}". Try another search?`, null, response_url);
             return;
         } else {
             // Store in our db
