@@ -40,6 +40,34 @@ async function find(query, trigger_id, response_url) {
     return;
 }
 
+async function findPop(query, trigger_id, response_url) {
+    try {
+        if (query == ""){
+            await slack_controller.reply("I need a search term... :face_palm:", null, response_url);
+            return;
+        }
+
+        logger.info(`Find popular tracks for query "${query}" triggered.`);
+        let search_results = await tracks_api.getSearchTracks(query);
+        let search_tracks = _.get(search_results, 'body.tracks.items');
+        search_tracks = _reverse(_.sortBy(search_tracks, ['popularity']));
+        if (search_tracks.length == 0) {
+            //No Tracks found
+            await slack_controller.reply(`:slightly_frowning_face: No popular tracks found for the search term "${query}". Try another search?`, null, response_url);
+            return;
+        } else {
+            // Store in our db
+            tracks_dal.createSearch(trigger_id, search_tracks, Math.ceil(search_tracks.length / 3));
+            await getThreeTracks(trigger_id, 1, response_url);
+            return;
+        }
+    } catch (error) {
+        logger.error(`Spotify failed to find popular tracks`, error);
+    }
+    await slack_controller.reply(`:slightly_frowning_face: Finding popular tracks failed.`, null, response_url);
+    return;
+}
+
 
 /**
  * Gets up to 3 tracks from our local db
@@ -270,6 +298,7 @@ async function initaliseSearchClear(){
 module.exports = {
     addTrack,
     find,
+    findPop,
     initaliseSearchClear,
     getThreeTracks,
     whom

@@ -52,6 +52,7 @@ router.post('/player/reset', player_controller.startReset)
 
 router.post('/artist', artist_controller.findArtist);
 router.post('/find', tracks_controller.find);
+router.post('/pop', tracks_controller.findPop);
 
 router.post('/whom', tracks_controller.whom);
 module.exports = router

@@ -12,6 +12,13 @@ async function find(req, res){
     }
 }
 
+async function findPop(req, res){
+    try {
+        await tracks_service.findPop(req.body.text, req.body.trigger_id, req.body.response_url);
+    } catch (error) {
+        logger.error(`Finding song failed`, error);
+    }
+}
 
 async function findArtistTracks(text, trigger_id, response_url){
     try {
@@ -66,6 +73,7 @@ module.exports = {
     addTrack,
     deleteOrAckReply,
     find,
+    findPop,
     findArtistTracks,
     initialiseClear,
     seeMoreTracks,
