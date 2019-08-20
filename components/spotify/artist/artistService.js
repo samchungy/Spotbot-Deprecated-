@@ -24,6 +24,7 @@ async function findArtist(query, trigger_id, response_url) {
         }
     } catch (error) {
         logger.error(`Find artist failed - `, error);
+        await slack_controller.reply(`:slightly_frowning_face: Find artists failed. `, null, response_url);
     }
 }
 
