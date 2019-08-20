@@ -25,7 +25,7 @@ async function find(query, trigger_id, response_url) {
         let search_tracks = _.get(search_results, 'body.tracks.items');
         if (search_tracks.length == 0) {
             //No Tracks found
-            await slack_controller.reply(```:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?```, null, response_url);
+            await slack_controller.reply(`:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?`, null, response_url);
             return;
         } else {
             // Store in our db
