@@ -14,7 +14,7 @@ router.use(slack_controller.isFromSlack)
 
 router.post('/options', settings_controller.getOptions);
 
-router.use(spotify_auth_controller.isAuth, admin_controller.isAdmin, settings_controller.isSettingsSet);
+router.use(settings_controller.help, spotify_auth_controller.isAuth, admin_controller.isAdmin, settings_controller.isSettingsSet);
 
 router.post('/', async(req, res) => {
   res.send();
