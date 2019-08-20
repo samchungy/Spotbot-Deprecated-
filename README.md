@@ -48,17 +48,17 @@ This was created in my spare time after work to add additional functionality to 
 
 ### Features
 
-* Create a playlist.
-* Find a track by Artist or Track Name.
-* Vote to skip a song with a customisable number of votes.
-* Reset a playlist.
-* Find out who requested a song.
+* Find a song by track name or artist.
+* Play, pause or vote to skip a track.
+* Reset the playlist
 * Find the current song or playlist playing.
+* Find out who requested a song.
 * Set a now playing status.
 * Blacklist a song.
-* Restrict usage of commands to a particular channel.
 * Disable repeat additions of a song.
-* Return to the playlist when a song is added. By default Spotify plays a radio based on the songs currently in your playlist. This feature enables Spotify to return back to the playlist automatically when a song is added. This does not work if repeat playlist is enabled.
+* Restrict usage of commands to a particular Slack channel.
+* Ability to return to the playlist when a new song is added. By default, Spotify can play a radio 
+* Return to the playlist automatically when a new song is added. _By default Spotify plays a radio based on the songs currently in your playlist when it runs out of songs_
 
 
 <!-- GETTING STARTED -->
