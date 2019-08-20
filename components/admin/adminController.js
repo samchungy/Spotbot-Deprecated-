@@ -30,6 +30,14 @@ async function isAdmin(req, res, next) {
     }
 }
 
+function isAdminHelp(user){
+    try {
+        return admin_service.isAdminHelp(user);
+    } catch (error) {
+        logger.error("Check for is admin help failed - ", error);
+    }
+}
+
 async function adminMenu (req, res, array){
     try {
         if (array[1] == "add") {
@@ -48,5 +56,6 @@ module.exports = {
     adminMenu,
     initAdmin,
     isAdmin,
+    isAdminHelp,
     setAdmin
 }

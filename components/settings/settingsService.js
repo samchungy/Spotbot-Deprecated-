@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const player_api = require('../spotify/player/playerAPI');
+const admin_controller = require('../admin/adminController');
 const slack_controller = require('../slack/slackController');
 const slack_formatter = slack_controller.slack_formatter;
 const {getSpotifyUserId} = require('../spotify/auth/spotifyAuthController');
@@ -174,6 +175,18 @@ async function initialise(){
   }
 }
 
+async function help(user, response_url){
+  try {
+    if (admin_controller.isAdminHelp(user)){
+      await slack_controller.reply(CONSTANTS.HELP + CONSTANTS.HELP_ADMIN, null, response_url);
+    } else{
+      await slack_controller.reply(CONSTANTS.HELP, null, response_url);
+    }
+  } catch (error) {
+    logger.error("Help failed - ", error);
+  }
+}
+
 function getNowPlaying(){
   return settings_dal.getNowPlaying();
 }
@@ -196,6 +209,7 @@ function isPositiveInteger(n) {
 }
 
 module.exports = {
+  help,
   initialise,
   getDeviceOptions,
   getPlaylistId,

@@ -62,6 +62,19 @@ async function initialiseSettings(){
     }
 }
 
+async function help(req, res, next){
+    try {
+        if (req.body.text == "" || req.body.text == "help"){
+            res.send();
+            await settings_service.help(req.body.user_name, req.body.response_url);
+        } else {
+            next();
+        }
+    } catch (error) {
+        logger.error("help failed - ", error);
+    }
+}
+
 function getChannel(){
     return settings_dal.getChannel();
 }
@@ -95,6 +108,7 @@ function getSkipVotes(){
 }
 
 module.exports = {
+    help,
     isInChannel,
     isSettingsSet,
     initialiseSettings,

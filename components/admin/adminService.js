@@ -39,6 +39,18 @@ async function isAdmin(user, response_url){
     }
 }
 
+function isAdminHelp(user){
+    try {
+        let admins = admin_dal.getAdmins();
+        if (admins == null || admins.users.length === 0 || admins.users.includes(user)){
+            return true;
+        }
+        return false;
+    } catch (error) {
+        logger.error(`Failed to check if admin help`);
+    }
+}
+
 
 function addAdmin(slack_user, response_url){
     try {
@@ -104,6 +116,7 @@ module.exports = {
     addAdmin,
     initAdmin,
     isAdmin,
+    isAdminHelp,
     listAdmins,
     removeAdmin,
     setAdmin
