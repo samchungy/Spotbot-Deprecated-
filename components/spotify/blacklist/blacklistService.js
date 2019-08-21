@@ -17,12 +17,12 @@ async function blacklistCurrent(user_id, response_url) {
             return;
         }
         if (blacklist_dal.getBlacklist(current_track.body.item.uri) == null) {
-            blacklist_dal.createBlacklist(current_track.body.item.uri, current_track.body.item.name, current_track.body.item.artists[0].name);
+            blacklist_dal.createBlacklist(current_track.body.item.uri, `${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""}`, current_track.body.item.artists[0].name);
             await blacklist_api.skip();
-            await slack_controller.post(channel_id, `:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} was blacklisted and skipped by <@${user_id}>`);
+            await slack_controller.post(channel_id, `:bangbang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""} was blacklisted and skipped by <@${user_id}>`);
             return;
         } else {
-            await slack_controller.reply(`:interrobang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name} is already blacklisted.`, null, response_url);
+            await slack_controller.reply(`:interrobang: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""} is already blacklisted.`, null, response_url);
             return;
         }
 
