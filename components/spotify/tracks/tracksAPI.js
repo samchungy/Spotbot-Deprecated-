@@ -38,6 +38,17 @@ async function getSearchTracks(query){
     }
 }
 
+async function getMaxSearchTracks(query){
+    try {
+        return await spotify_api.searchTracks(query, {
+            limit: 30
+        });
+    } catch (error) {
+        logger.error(`Spotify API: Get Search Tracks failed.`, error);
+        throw Error(error);
+    }
+}
+
 async function getPlaylistTracks(playlist_id, offset){
     try{
         return await spotify_api.getPlaylistTracks(playlist_id, {
@@ -97,6 +108,7 @@ async function getUserProfile(user_id){
 
 module.exports = {
     addTracks,
+    getMaxSearchTracks,
     getPlayingTrack,
     getPlaylist,
     getPlaylistTracks,

@@ -48,9 +48,10 @@ async function findPop(query, trigger_id, response_url) {
         }
 
         logger.info(`Find popular tracks for query "${query}" triggered.`);
-        let search_results = await tracks_api.getSearchTracks(query);
+        let search_results = await tracks_api.getMaxSearchTracks(query);
         let search_tracks = _.get(search_results, 'body.tracks.items');
         search_tracks = _.reverse(_.sortBy(search_tracks, ['popularity']));
+        search_tracks = search_tracks.splice(0, 30);
         if (search_tracks.length == 0) {
             //No Tracks found
             await slack_controller.reply(`:slightly_frowning_face: No popular tracks found for the search term "${query}". Try another search?`, null, response_url);
