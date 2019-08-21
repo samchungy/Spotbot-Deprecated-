@@ -41,6 +41,7 @@ module.exports = {
     HELP:
     `*Find a track*\n
     \`/find2 [track name]\` - Find a track on Spotify\n
+    \`/findpop2 [track name]\` - Find a track on Spotify sorted by Popularity\n
     \`/artist2 [artist name]\` - Find a track by an artist on Spotify\n\n` +
     `*Playback Status*\n
     \`/current2 track | playlist\` - Show the current playing track or playlist\n
