@@ -62,8 +62,8 @@ async function getThreeArtists(trigger_id, page, response_url) {
         artist_dal.updateSearch(search);
 
         slack_attachments.push(
-            new slack_formatter.buttonAttachment(`Page: ${page}/${search.total_pages}`, "See more artists", trigger_id, "See more artists", 
-                null, CONSTANTS.SLACK.PAYLOAD.SEE_MORE_ARTISTS, page+1).json
+            new slack_formatter.doubleButtonAttachment(`Page: ${page}/${search.total_pages}`, "See more artists", trigger_id, "See more artists", 
+                null, CONSTANTS.SLACK.PAYLOAD.SEE_MORE_ARTISTS, page+1, "Cancel search", CONSTANTS.SLACK.BUTTON_STYLE.DANGER, CONSTANTS.SLACK.PAYLOAD.CANCEL_SEARCH, CONSTANTS.SLACK.PAYLOAD.CANCEL_SEARCH).json
         );
         await slack_controller.reply(`:mag: Are these the tracks you were looking for?`, slack_attachments, response_url);
         return;
