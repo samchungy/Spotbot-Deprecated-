@@ -90,7 +90,7 @@ async function getCurrentTrack(response_url){
     try {
         let playlist_id = settings_controller.getPlaylistId();
         let current_track = await player_api.getPlayingTrack();
-        if (current_track.statusCode == 204){
+        if (!(_.get(current_track, "body.item")) || current_track.statusCode == 204){
             await slack_controller.inChannelReply(":information_source: Spotify is currently not playing", null, response_url);
             return;
         }
