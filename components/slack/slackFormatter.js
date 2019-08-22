@@ -101,6 +101,15 @@ class deleteReply extends reply {
     }
 }
 
+class replaceReply extends reply {
+    constructor(text, attachments) {
+        super(text, attachments);
+        this.json = Object.assign(this.json, {
+            replace_original : true
+        });
+    }
+}
+
 class deleteInChannelReply extends deleteReply {
     constructor(text, attachments){
         super(text, attachments);
@@ -251,6 +260,7 @@ module.exports = {
     inChannelReply,
     postEpehemralParams,
     postParams,
+    replaceReply,
     reply,
     selectAttachment,
     selectDialogElement,

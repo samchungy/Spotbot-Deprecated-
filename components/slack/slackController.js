@@ -125,6 +125,16 @@ async function deleteReply(text, attachments, response_url){
     }
 }
 
+async function replaceReply(text, attachments, response_url){
+    try {
+        let message = new slack_formatter.replaceReply(text, attachments).json;
+        await slack_api.reply(message, response_url);
+    } catch (error) {
+        logger.error("Replace reply failed", error);
+        throw Error(error);
+    }
+}
+
 module.exports = {
     ack,
     deleteAndAck,
@@ -133,6 +143,7 @@ module.exports = {
     isFromSlack,
     post,
     postEphemeral,
+    replaceReply,
     reply,
     sendDialog,
     slack_formatter

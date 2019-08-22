@@ -153,18 +153,19 @@ async function voteToSkip(slack_user, track_uri, response_url){
             for (let user of skip.users){
                 user_text += `<@${user}> `;
             }
-            if (parseInt(skip_votes)+1==skip.users.length){
+            player_dal.updateSkip(skip.uri, skip.name, skip.artist, skip.users);
+            let total_votes = parseInt(skip_votes)+1;
+            if (total_votes==skip.users.length){
                 await player_api.skip();
                 await slack_controller.deleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: ${skip.artist} - ${skip.name} was skipped by: ${user_text}`, null, response_url);
-                player_dal.updateSkip(skip.uri, skip.name, skip.artist, skip.users);
                 return;
             }
             let votephrase = "votes";
-            let num_votes_needed = parseInt(skip_votes)+1-skip.users.length;
+            let num_votes_needed = total_votes-skip.users.length;
             if (num_votes_needed == 1){
                 votephrase = "vote";
             }
-            await slack_controller.deleteReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${skip.users[0]}> has requested to skip ${skip.artist} - ${skip.name}.`, 
+            await slack_controller.replaceReply(`:black_right_pointing_double_triangle_with_vertical_bar: <@${skip.users[0]}> has requested to skip ${skip.artist} - ${skip.name}.`, 
             [new slack_formatter.footer_attachment(`Votes: ${user_text}`, `Votes: ${user_text}`, current_track.body.item.uri, "Skip", null, CONSTANTS.SLACK.PAYLOAD.SKIP_VOTE, CONSTANTS.SLACK.PAYLOAD.SKIP_VOTE, `${num_votes_needed} more ${votephrase} needed.`).json], response_url);
             return; 
     
