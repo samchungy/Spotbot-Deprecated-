@@ -94,6 +94,7 @@ SLACK_SIGNING_SECRET=XXX
 ### Commands
 * Find a track
    * `/find [track name]` - Find a track on Spotify
+   * `/findpop [track name]` - Finds a track on Spotify sorted by Popularity
    * `/artist [artist name]` - Find a track by an artist on Spotify
 * Playback Status
    * `/current track | playlist` - Show the current playing track or playlist
