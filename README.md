@@ -5,7 +5,7 @@
   <h3 align="center">Spotbot</h3>
 
   <p align="center">
-    A Spotify bot for Slack. Made for Deloitte Platform Engineering
+    A Spotify bot for Slack
     <br />
   </p>
 </p>
