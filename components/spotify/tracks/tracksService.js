@@ -104,10 +104,9 @@ async function getThreeTracks(trigger_id, page, response_url) {
         }
         // Update DB
         tracks_dal.updateSearch(search);
-
         slack_attachments.push(
-            new slack_formatter.buttonAttachment(`Page: ${page}/${search.total_pages}`, "See more tracks", trigger_id, "See more tracks", 
-                null, CONSTANTS.SLACK.PAYLOAD.SEE_MORE_TRACKS, page+1).json
+            new slack_formatter.doubleButtonAttachment(`Page: ${page}/${search.total_pages}`, "See more tracks", trigger_id, "See more tracks", 
+                null, CONSTANTS.SLACK.PAYLOAD.SEE_MORE_TRACKS, page+1, "Cancel search", CONSTANTS.SLACK.BUTTON_STYLE.DANGER, CONSTANTS.SLACK.PAYLOAD.CANCEL_SEARCH, CONSTANTS.SLACK.PAYLOAD.CANCEL_SEARCH).json
         );
         await slack_controller.reply(`:mag: Are these the tracks you were looking for?`, slack_attachments, response_url);
         return;
@@ -296,8 +295,22 @@ async function initaliseSearchClear(){
     }
 }
 
+async function cancelSearch(trigger_id) {
+    try {
+        // Remove our search from our DB.
+        var search = tracks_dal.getSearch(trigger_id);
+    if (search != null) {
+        tracks_dal.deleteSearch(search);
+    }
+    await slack_controller.reply("Search cancelled", null, response_url);
+    } catch (error) {
+        logger.error("Cancel search failed");
+    }
+}
+
 module.exports = {
     addTrack,
+    cancelSearch,
     find,
     findPop,
     initaliseSearchClear,

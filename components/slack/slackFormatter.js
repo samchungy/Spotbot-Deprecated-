@@ -26,6 +26,19 @@ class buttonAttachment extends attachment {
     }
 }
 
+ class doubleButtonAttachment extends buttonAttachment {
+    constructor (text, fallback, callback_id, action_text, action_style, action_name, action_value, action_text2, action_style2, action_name2, action_value2){
+        super(text, fallback, callback_id, action_text, action_style, action_name, action_value);
+        this.json.actions.push({
+            type: "button",
+            text: action_text2,
+            style: action_style2,
+            name: action_name2,
+            value : action_value2
+        });
+    }
+ }
+
 class footer_attachment extends buttonAttachment{
     constructor(text, fallback, callback_id, action_text, action_style, action_name, action_value, footer){
         super(text, fallback, callback_id, action_text, action_style, action_name, action_value);
@@ -233,6 +246,7 @@ module.exports = {
     dialog,
     dialogError,
     dialogParams,
+    doubleButtonAttachment,
     footer_attachment,
     inChannelReply,
     postEpehemralParams,

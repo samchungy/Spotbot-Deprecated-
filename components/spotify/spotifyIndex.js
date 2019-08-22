@@ -33,7 +33,9 @@ router.post('/slack/actions', async (req, res) => {
             await player_controller.voteToSkip(payload);
         } else if (payload_name == PAYLOAD.RESET) {
             await player_controller.reset(payload);
-        }
+        } else if (payload_name == PAYLOAD.CANCEL_SEARCH) {
+            await tracks_controller.cancelSearch(payload);
+        } 
     } else {
         if (payload.callback_id == PAYLOAD.SPOTBOT_CONFIG) {
             await settings_controller.verifySettings(req, res, payload);

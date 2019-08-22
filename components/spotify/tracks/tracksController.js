@@ -69,8 +69,17 @@ async function initialiseClear(req, res){
     }
 }
 
+async function cancelSearch(payload){
+    try {
+        await tracks_service.cancelSearch(payload.callback_id);
+    } catch (error) {
+        logger.error("Cancelling search failed - ", error);
+    }
+}
+
 module.exports = {
     addTrack,
+    cancelSearch,
     deleteOrAckReply,
     find,
     findPop,

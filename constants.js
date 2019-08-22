@@ -84,6 +84,7 @@ module.exports = {
             ADD_SONG : "ADDSONG",
             BLACKLIST : "BLACKLIST",
             BLACKLIST_REMOVE: "BLACKLIST_REMOVE",
+            CANCEL_SEARCH: "CANCEL_SEARCH",
             RESET: "RESET",
             SEE_MORE_ARTISTS: "SEEMOREARTISTS",
             SEE_MORE_BLACKLIST : "SEEMOREBLACKLIST",
