@@ -302,7 +302,7 @@ async function cancelSearch(trigger_id, response_url) {
     if (search != null) {
         tracks_dal.deleteSearch(search);
     }
-    await slack_controller.reply(":slightly_smiling_face: Search cancelled", null, response_url);
+    await slack_controller.reply(":information_source: Search cancelled.", null, response_url);
     } catch (error) {
         logger.error("Cancel search failed", error);
     }
