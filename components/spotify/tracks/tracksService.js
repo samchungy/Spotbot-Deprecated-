@@ -295,7 +295,7 @@ async function initaliseSearchClear(){
     }
 }
 
-async function cancelSearch(trigger_id) {
+async function cancelSearch(trigger_id, response_url) {
     try {
     // Remove our search from our DB.
     var search = tracks_dal.getSearch(trigger_id);

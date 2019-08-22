@@ -71,7 +71,7 @@ async function initialiseClear(req, res){
 
 async function cancelSearch(payload){
     try {
-        await tracks_service.cancelSearch(payload.callback_id);
+        await tracks_service.cancelSearch(payload.callback_id, payload.response_url);
     } catch (error) {
         logger.error("Cancelling search failed - ", error);
     }
