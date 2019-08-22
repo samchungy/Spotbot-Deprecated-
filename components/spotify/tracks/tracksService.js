@@ -297,14 +297,14 @@ async function initaliseSearchClear(){
 
 async function cancelSearch(trigger_id) {
     try {
-        // Remove our search from our DB.
-        var search = tracks_dal.getSearch(trigger_id);
+    // Remove our search from our DB.
+    var search = tracks_dal.getSearch(trigger_id);
     if (search != null) {
         tracks_dal.deleteSearch(search);
     }
     await slack_controller.reply("Search cancelled", null, response_url);
     } catch (error) {
-        logger.error("Cancel search failed");
+        logger.error("Cancel search failed", error);
     }
 }
 
