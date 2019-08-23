@@ -40,17 +40,17 @@ module.exports = {
     },
     HELP:
     `*Find a track*\n
-    \`/find2 [track name]\` - Find a track on Spotify\n
-    \`/findpop2 [track name]\` - Find a track on Spotify sorted by Popularity\n
-    \`/artist2 [artist name]\` - Find a track by an artist on Spotify\n\n` +
+    \`/find [track name]\` - Find a track on Spotify\n
+    \`/findpop [track name]\` - Find a track on Spotify sorted by Popularity\n
+    \`/artist [artist name]\` - Find a track by an artist on Spotify\n\n` +
     `*Playback Status*\n
-    \`/current2 track | playlist\` - Show the current playing track or playlist\n
-    \`/whom2\` - Show who requested the current song\n\n` +
+    \`/current track | playlist\` - Show the current playing track or playlist\n
+    \`/whom\` - Show who requested the current track\n\n` +
     `*Control*\n
-    \`/play2\` - Hits play on Spotify\n
-    \`/pause2\` - Hits pause on Spotify\n
-    \`/skip2\` - Vote to skip a song\n
-    \`/reset2\` - Nuke the playlist\n\n`,
+    \`/play\` - Hits play on Spotify\n
+    \`/pause\` - Hits pause on Spotify\n
+    \`/skip\` - Starts a vote to skip a track\n
+    \`/reset\` - Nuke the playlist\n\n`,
     HELP_ADMIN:
     `*Admin Commands*\n
     \`/spotbot auth\` - Configure authorization wtih Spotify\n
@@ -58,8 +58,8 @@ module.exports = {
     \`/spotbot admin add [@user]\` - Add a user as a Spotbot admin\n
     \`/spotbot admin remove [@user]\` - Remove a user as a Spotbot admin\n
     \`/spotbot admin list\` - List all Spotbot admins\n
-    \`/spotbot blacklist current\` - Blacklists and skips the current song\n
-    \`/spotbot blacklist remove\` - Lists songs to remove from the Blacklist\n`,
+    \`/spotbot blacklist current\` - Blacklists and skips the current track\n
+    \`/spotbot blacklist remove\` - Lists tracks to remove from the Blacklist\n`,
     SPOTIFY_AUTH : {
         REDIRECT_PATH: "settings/auth"
     },
