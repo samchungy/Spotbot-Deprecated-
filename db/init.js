@@ -2,64 +2,83 @@ const CONSTANTS = require('../constants');
 const loki = require('lokijs');
 const logger = require('../log/winston');
 
-const db = new loki(CONSTANTS.DB.SETTINGS_FILE, {
-    autoload: true,
-    autoloadCallback: initialiseConfig,
+const db = new loki(CONSTANTS.DB.SPOTBOT_FILE, {
     autosave: true
 });
 
-const db2 = new loki(CONSTANTS.DB.SPOTIFY_FILE, {
-    autoload: true,
-    autoloadCallback: initialiseTracks,
-    autosave: true
-});
-
-async function initialiseConfig() {
-    try {
-        var configs = db.getCollection(CONSTANTS.DB.COLLECTION.CONFIG);
-        // If collection is empty do not load it, instead - create a new file
-        if (configs === null || configs.count() == 0) {
-            db.addCollection(CONSTANTS.DB.COLLECTION.CONFIG);
-            db.addCollection(CONSTANTS.DB.COLLECTION.AUTH);
-            return;
+async function initialise(settings_controller, auth_controller, tracks_controller) {
+    db.loadDatabase(null, async () => {
+        try {
+            var config = db.getCollection(CONSTANTS.DB.COLLECTION.CONFIG);
+            // If collection is empty do not load it, instead - create a new file
+            if (config === null) {
+                console.log("config is null");
+                db.addCollection(CONSTANTS.DB.COLLECTION.CONFIG);
+                db.addCollection(CONSTANTS.DB.COLLECTION.SEARCH, {
+                    unique: CONSTANTS.DB.KEY.TRIGGER_ID
+                });
+                db.addCollection(CONSTANTS.DB.COLLECTION.HISTORY, {
+                    unique: CONSTANTS.DB.KEY.TRACK_URI
+                });
+                db.addCollection(CONSTANTS.DB.COLLECTION.OTHER, {
+                    unique: CONSTANTS.DB.KEY.NAME
+                });
+                db.addCollection(CONSTANTS.DB.COLLECTION.BLACKLIST, {
+                    unique: CONSTANTS.DB.KEY.BLACKLIST
+                });
+                return;
+            }
+            if (config.count() != 0) {
+                await auth_controller.initialise();
+                await settings_controller.initialiseSettings();
+                await tracks_controller.initialiseClear();
+            }
+        } catch (error) {
+            logger.error("Fail to initialise config - ", error);
         }
-        let {initialiseAuth} = require('../components/spotify/auth/spotifyAuthController');    
-        await initialiseAuth();
-        let {initialiseSettings} = require('../components/settings/settingsController');
-        await initialiseSettings();
-        let {initialiseClear} = require('../components/spotify/tracks/tracksController');
-        await initialiseClear();
-        // let {initialise2} = require('../core/spotifyConfig');
-        // initialise2();
-    } catch (error) {
-        logger.error("Fail to initialise config - ", error);
-    }
-
+    });
 }
 
-/**
- * Initialise the database
- */
-function initialiseTracks() {
-    var searches = db2.getCollection(CONSTANTS.DB.COLLECTION.SEARCH);
+// const db = new loki(CONSTANTS.DB.SPOTBOT_FILE, {
+//     autoload: true,
+//     autoloadCallback: initialise,
+//     autosave: true
+// });
 
-    if (searches === null || searches.count() == 0) {
-        db2.addCollection(CONSTANTS.DB.COLLECTION.SEARCH, {
-            unique: CONSTANTS.DB.KEY.TRIGGER_ID
-        });
-        db2.addCollection(CONSTANTS.DB.COLLECTION.HISTORY, {
-            unique: CONSTANTS.DB.KEY.TRACK_URI
-        });
-        db2.addCollection(CONSTANTS.DB.COLLECTION.OTHER, {
-            unique: CONSTANTS.DB.KEY.NAME
-        });
-        db2.addCollection(CONSTANTS.DB.COLLECTION.BLACKLIST, {
-            unique: CONSTANTS.DB.KEY.BLACKLIST
-        });
-    }
-}
-
+// async function initialise(settings_controller, auth_controller, tracks_controller) {
+//     try {
+//         var config = db.getCollection(CONSTANTS.DB.COLLECTION.CONFIG);
+//         console.log(config);
+//         console.log(config.count());
+//         // If collection is empty do not load it, instead - create a new file
+//         if (config === null) {
+//             console.log("config is null");
+//             db.addCollection(CONSTANTS.DB.COLLECTION.CONFIG);
+//             db.addCollection(CONSTANTS.DB.COLLECTION.AUTH);
+//             db.addCollection(CONSTANTS.DB.COLLECTION.SEARCH, {
+//                 unique: CONSTANTS.DB.KEY.TRIGGER_ID
+//             });
+//             db.addCollection(CONSTANTS.DB.COLLECTION.HISTORY, {
+//                 unique: CONSTANTS.DB.KEY.TRACK_URI
+//             });
+//             db.addCollection(CONSTANTS.DB.COLLECTION.OTHER, {
+//                 unique: CONSTANTS.DB.KEY.NAME
+//             });
+//             db.addCollection(CONSTANTS.DB.COLLECTION.BLACKLIST, {
+//                 unique: CONSTANTS.DB.KEY.BLACKLIST
+//             });
+//             return;
+//         }
+//         if (config.count() != 0){
+//             // await auth_controller.initialise();
+//             // await settings_controller.initialiseSettings();
+//             // await tracks_controller.initialiseClear();
+//         }
+//     } catch (error) {
+//         logger.error("Fail to initialise config - ", error);
+//     }
+// }
 module.exports = {
     db,
-    db2
-}
+    initialise
+};

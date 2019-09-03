@@ -1,5 +1,6 @@
 const CONSTANTS = require('../../constants');
 const config = require('../../db/config');
+const tracks = require('../../db/tracks');
 const logger = require('../../log/winston');
 
 function setSpotbotConfig(skip_votes, back_to_playlist, now_playing, disable_repeats_duration,
@@ -25,6 +26,24 @@ function setSpotbotConfig(skip_votes, back_to_playlist, now_playing, disable_rep
         logger.error(`Setting spotbot config failed`, error);
     }
 
+}
+
+function getCurrent(){
+    return tracks.getOther(CONSTANTS.DB.COLLECTION.CURRENT_TRACK);
+}
+
+function createCurrent(){
+    let current_track = getCurrent();
+    if (current_track == null){
+        tracks.createOther(CONSTANTS.DB.COLLECTION.CURRENT_TRACK);
+        return;
+    }
+}
+
+function updateCurrent(uri){
+    let current_track = getCurrent();
+    current_track.uri = uri;
+    tracks.updateOther(current_track);
 }
 
 /**
@@ -71,8 +90,10 @@ function getDefaultDevice(){
 }
 
 module.exports = {
+    createCurrent,
     getBackToPlaylist,
     getChannel,
+    getCurrent,
     getDefaultDevice,
     getDisableRepeatsDuration,
     getNowPlaying,
@@ -81,5 +102,6 @@ module.exports = {
     getPlaylistName,
     getSkipVotes,
     getSpotbotConfig,
-    setSpotbotConfig
+    setSpotbotConfig,
+    updateCurrent
 };

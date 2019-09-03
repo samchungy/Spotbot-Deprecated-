@@ -14,8 +14,7 @@ module.exports = {
         SEARCH_CLEAR: "SEARCH_CLEAR"
     },
     DB : {
-        SETTINGS_FILE: "settings.db",
-        SPOTIFY_FILE: "spotify.db",
+        SPOTBOT_FILE: "spotbot.db",
         COLLECTION: {
             ADMIN: "admin",
             AUTH: "auth",

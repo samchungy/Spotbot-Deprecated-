@@ -1,9 +1,9 @@
 const CONSTANTS = require('../constants');
 const init = require('./init');
-const {db2} = init;
+const {db} = init;
 
 function getSearches(){
-    return db2.getCollection(CONSTANTS.DB.COLLECTION.SEARCH);
+    return db.getCollection(CONSTANTS.DB.COLLECTION.SEARCH);
 }
 
 function createSearch(search){
@@ -32,7 +32,7 @@ function clearSearches(){
 }
 
 function getAllHistory(){
-    return db2.getCollection(CONSTANTS.DB.COLLECTION.HISTORY);
+    return db.getCollection(CONSTANTS.DB.COLLECTION.HISTORY);
 }
 
 function createHistory(history){
@@ -51,7 +51,7 @@ function updateHistory(history){
 }
 
 function getOtherCollection(){
-    return db2.getCollection(CONSTANTS.DB.COLLECTION.OTHER)
+    return db.getCollection(CONSTANTS.DB.COLLECTION.OTHER)
 }
 
 function createOther(name){
@@ -72,7 +72,7 @@ function updateOther(other_object){
 }
 
 function getAllBlacklist(){
-    return db2.getCollection(CONSTANTS.DB.COLLECTION.BLACKLIST);
+    return db.getCollection(CONSTANTS.DB.COLLECTION.BLACKLIST);
 }
 
 function createBlacklist(blacklist){

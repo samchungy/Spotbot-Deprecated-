@@ -27,26 +27,10 @@ function getCurrent(){
     return tracks.getOther(CONSTANTS.DB.COLLECTION.CURRENT_TRACK);
 }
 
-function createCurrent(){
-    let current_track = getCurrent();
-    if (current_track == null){
-        tracks.createOther(CONSTANTS.DB.COLLECTION.CURRENT_TRACK);
-        return;
-    }
-}
-
-function updateCurrent(uri){
-    let current_track = getCurrent();
-    current_track.uri = uri;
-    tracks.updateOther(current_track);
-}
-
 
 module.exports = {
-    createCurrent,
     createSkip,
     getCurrent,
     getSkip,
-    updateCurrent,
     updateSkip
 }
