@@ -4,6 +4,7 @@ const artist = require('./artistService');
 class artistController {
     constructor(slack_controller, slack_formatter, track_controller){
         this.artist_service = artist.create(slack_controller, slack_formatter, track_controller);
+        this.track_controller = track_controller;
     }
     async findArtist(req, res){
         try {
@@ -24,7 +25,7 @@ class artistController {
     async viewArtist(payload){
         try {
             this.artist_service.deleteArtist(payload.callback_id);
-            await this.track_controller.findArtistTracks(payload.actions[0].value, payload.callback_id,  payload.response_url);
+            await this.track_controller.findArtistTracks(payload.actions[0].value, payload.callback_id,  payload.response_url, false);
         } catch (error) {
             logger.error("View artist failed - ", error);
         }

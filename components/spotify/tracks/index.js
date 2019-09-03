@@ -1,6 +1,5 @@
 // const spotifyController = require('..spotifyController');
 const tracks = require('./tracksService');
-const slack_controller = require('../../slack/slackController');
 const CONSTANTS = require('../../../constants');
 const logger = require('../../../log/winston');
 
@@ -11,7 +10,7 @@ class trackController {
     }
     async find(req, res){
         try {
-            await this.tracks_service.find(req.body.text, req.body.trigger_id, req.body.response_url);
+            await this.tracks_service.find(req.body.text, req.body.trigger_id, req.body.response_url, false);
         } catch (error) {
             logger.error(`Finding song failed`, error);
         }
@@ -27,7 +26,7 @@ class trackController {
     
     async findArtistTracks(text, trigger_id, response_url){
         try {
-            await this.tracks_service.find(text, trigger_id, response_url);
+            await this.tracks_service.find(text, trigger_id, response_url, true);
         } catch (error) {
             logger.error(`Finding song failed`, error);
         }
@@ -35,7 +34,7 @@ class trackController {
     
     deleteOrAckReply(req, res, name){
         if (CONSTANTS.SLACK.PAYLOAD.DELETABLE.includes(name)){
-            slack_controller.deleteAndAck(req, res);
+            this.slack_controller.deleteAndAck(req, res);
         } else {
             res.send();
         }

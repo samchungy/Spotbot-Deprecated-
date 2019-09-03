@@ -16,7 +16,7 @@ class trackService {
         this.blacklist_controller = blacklist_controller;
         this.spotify_auth_controller = spotify_auth_controller;
     }
-    async find(query, trigger_id, response_url) {
+    async find(query, trigger_id, response_url, artist) {
         try {
             if (query == ""){
                 await this.slack_controller.reply("I need a search term... :face_palm:", null, response_url);
@@ -24,8 +24,15 @@ class trackService {
             }
     
             logger.info(`Find tracks for query "${query}" triggered.`);
-            let search_results = await tracks_api.getSearchTracks(query);
-            let search_tracks = _.get(search_results, 'body.tracks.items');
+            let search_results;
+            let search_tracks;
+            if (artist){
+                search_results = await tracks_api.getSearchArtistTracks(query);
+                search_tracks = _.get(search_results, 'body.tracks');
+            } else{
+                search_results = await tracks_api.getSearchTracks(`${query}*`);
+                search_tracks = _.get(search_results, 'body.tracks.items');
+            }
             if (search_tracks.length == 0) {
                 //No Tracks found
                 await this.slack_controller.reply(`:slightly_frowning_face: No tracks found for the search term "${query}". Try another search?`, null, response_url);
@@ -51,7 +58,7 @@ class trackService {
             }
     
             logger.info(`Find popular tracks for query "${query}" triggered.`);
-            let search_results = await tracks_api.getMaxSearchTracks(query);
+            let search_results = await tracks_api.getMaxSearchTracks(`${query}*`);
             let search_tracks = _.get(search_results, 'body.tracks.items');
             search_tracks = _.reverse(_.sortBy(search_tracks, ['popularity']));
             search_tracks = search_tracks.splice(0, 30);

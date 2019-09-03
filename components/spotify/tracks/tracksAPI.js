@@ -98,6 +98,16 @@ async function getTrack(track_id){
     }
 }
 
+
+async function getSearchArtistTracks(id){
+    try {
+        return await spotify_api.getArtistTopTracks(id, "AU");
+    } catch (error) {
+        logger.error(`Spotify API: Get Search Artist Tracks failed.`, error);
+        throw Error(error);
+    }
+}
+
 async function getUserProfile(user_id){
     try {
         return await spotify_api.getUser(user_id);
@@ -112,6 +122,7 @@ module.exports = {
     getPlayingTrack,
     getPlaylist,
     getPlaylistTracks,
+    getSearchArtistTracks,
     getSearchTracks,
     getTrack,
     getUserProfile,

@@ -13,7 +13,7 @@ class artistService {
     async findArtist(query, trigger_id, response_url) {
         try {
             logger.info(`Find artists for query "${query}" triggered.`);
-            let search_results = await artist_api.getArtists(query);
+            let search_results = await artist_api.getArtists(`${query}*`);
             let search_artists = _.get(search_results, 'body.artists.items');
             if (search_artists.length == 0) {
                 //No Artists found
@@ -22,7 +22,7 @@ class artistService {
             } else {
                 // Store in our db
                 artist_dal.createArtistSearch(trigger_id, search_artists, Math.ceil(search_artists.length / 3));
-                await getThreeArtists(trigger_id, 1, response_url);
+                await this.getThreeArtists(trigger_id, 1, response_url);
                 return;
             }
         } catch (error) {
@@ -58,7 +58,7 @@ class artistService {
                 slack_attachments.push(
                     new this.slack_formatter.trackAttachment(`:musical_note: *Genres* ${genres}\n\n :busts_in_silhouette: *Followers* ${artist.followers.total}`, 
                         artist.name, trigger_id, "View artist tracks", CONSTANTS.SLACK.BUTTON_STYLE.PRIMARY, CONSTANTS.SLACK.PAYLOAD.VIEW_ARTIST, 
-                            artist.name, image, artist.name, artist.external_urls.spotify).json
+                            artist.id, image, artist.name, artist.external_urls.spotify).json
                 );
             }
             // Update DB
