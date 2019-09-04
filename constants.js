@@ -41,7 +41,8 @@ module.exports = {
     `*Find a track*\n
     \`/find [track name]\` - Find a track on Spotify\n
     \`/findpop [track name]\` - Find a track on Spotify sorted by Popularity\n
-    \`/artist [artist name]\` - Find a track by an artist on Spotify\n\n` +
+    \`/artist [artist name]\` - Find a track by an artist on Spotify\n
+    \`/removetrack\` - Lists tracks to remove from the playlist\n\n` +
     `*Playback Status*\n
     \`/current track | playlist\` - Show the current playing track or playlist\n
     \`/whom\` - Show who requested the current track\n\n` +
@@ -56,7 +57,7 @@ module.exports = {
     \`/spotbot settings\` - Configure Spotbot settings\n
     \`/spotbot admin add [@user]\` - Add a user as a Spotbot admin\n
     \`/spotbot admin remove [@user]\` - Remove a user as a Spotbot admin\n
-    \`/spotbot admin list\` - List all Spotbot admins\n
+    \`/spotbot admin list\` - Lists all Spotbot admins\n
     \`/spotbot blacklist current\` - Blacklists and skips the current track\n
     \`/spotbot blacklist remove\` - Lists tracks to remove from the Blacklist\n`,
     SPOTIFY_AUTH : {
