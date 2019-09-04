@@ -317,13 +317,70 @@ class trackService {
             logger.error("Cancel search failed", error);
         }
     }
-    
+
+    async removeTrack(user_id, response_url){
+        try {
+            var playlist_id = this.settings_controller.getPlaylistId();
+            let playlist = await tracks_api.getPlaylist(playlist_id);
+            var num_of_searches = Math.ceil(playlist.body.tracks.total/100);
+            var all_promises = [];
+            for (let offset = 0; offset < num_of_searches ; offset++){
+                all_promises.push(new Promise(async (resolve, reject) => {
+                    let playlist_tracks = await tracks_api.getPlaylistTracks(playlist_id, offset);
+                    resolve(_.get(playlist_tracks, 'body.items'));
+                }));
+            }
+            let all_tracks = await Promise.all(all_promises);
+            all_tracks = _.flatten(all_tracks);
+            let user_added = [];
+            for (let track of all_tracks){
+                let history = tracks_dal.getHistory(track.track.uri);
+                if (history && history.user_id == user_id){
+                    //User added the song
+                    user_added.push(
+                        new this.slack_formatter.selectOption(`${track.track.artists[0].name} - ${track.track.name}${track.track.explicit ? " (Explicit)" : ""}`, track.track.uri).json
+                    );
+                }
+            }
+            let attachment;
+            if (user_added.length == 0){
+                attachment = new this.slack_formatter.selectAttachment(`You have not added any songs to this playlist.`, `Playlist tracks`, CONSTANTS.SLACK.PAYLOAD.PLAYLIST_REMOVE, 
+                CONSTANTS.SLACK.PAYLOAD.PLAYLIST_REMOVE, null).json;
+            } else {
+                attachment = new this.slack_formatter.selectAttachment("", `Remove a track`, CONSTANTS.SLACK.PAYLOAD.PLAYLIST_REMOVE, 
+                    CONSTANTS.SLACK.PAYLOAD.PLAYLIST_REMOVE, user_added).json;
+            }
+            await this.slack_controller.reply(":interrobang: Select the song you would like to remove from the playlist", [attachment], response_url);
+
+        } catch (error) {
+            logger.error("Remove track failed", error);
+        }
+    }
+
+    async removeFromPlaylist(track_uri, response_url){
+        try {
+            var playlist_id = this.settings_controller.getPlaylistId();
+            var channel_id = this.settings_controller.getChannel();
+            var track_id = track_uri.match(/[^:]+$/)[0];
+            let track = await tracks_api.getTrack(track_id);
+            var name = `${_.get(track, 'body.name')}${track.body.explicit ? " (Explicit)" : ""}`;
+            var artist = _.get(track, 'body.artists[0].name');
+            await tracks_api.removeTrack(playlist_id, track_uri);
+            var attachment = new this.slack_formatter.selectAttachment(`:white_check_mark: Playlist track removed.`, `Playlist tracks`, CONSTANTS.SLACK.PAYLOAD.PLAYLIST_REMOVE,
+                CONSTANTS.SLACK.PAYLOAD.PLAYLIST_REMOVE, null).json;
+            await this.slack_controller.reply(":interrobang: Select the song you would like to remove from the playlist", [attachment], response_url);
+            await this.slack_controller.post(channel_id, `:put_litter_in_its_place: ${artist} - ${name} was removed from the playlist.`);
+        } catch (error) {
+            logger.error(`Remove from blacklist failed `, error);
+        }
+    }
     
 }
 
 function create(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
     return new trackService(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
 }
+
 
 module.exports = {
     create

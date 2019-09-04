@@ -53,7 +53,7 @@ async function getPlaylistTracks(playlist_id, offset){
     try{
         return await spotify_api.getPlaylistTracks(playlist_id, {
             offset: offset*100,
-            fields: "items(track.uri,added_by.id,added_at)"
+            fields: "items(track(uri,name,artists,explicit),added_by.id,added_at)"
         });
     } catch (error) {
         logger.error(`Spotify API: Get playlist tracks failed.`, error);
@@ -116,6 +116,16 @@ async function getUserProfile(user_id){
     }
 }
 
+async function removeTrack(playlist_id, track_uri) {
+    try {
+        await spotify_api.removeTracksFromPlaylist(playlist_id, [{
+            uri: track_uri
+        }]);
+    } catch (error) {
+        logger.error(`Spotify API: Remove track failed. - `, error);
+    }
+}
+
 module.exports = {
     addTracks,
     getMaxSearchTracks,
@@ -127,5 +137,6 @@ module.exports = {
     getTrack,
     getUserProfile,
     pause,
-    playWithContext
+    playWithContext,
+    removeTrack
 }

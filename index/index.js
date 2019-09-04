@@ -71,6 +71,8 @@ router.post('/slack/actions', async (req, res) => {
             await artist_controller.viewArtist(payload);
         } else if (payload_name == PAYLOAD.BLACKLIST_REMOVE) {
             await blacklist_controller.removeFromBlacklist(payload);
+        } else if (payload_name == PAYLOAD.PLAYLIST_REMOVE) {
+            await tracks_controller.removeFromPlaylist(payload);
         } else if (payload_name == PAYLOAD.SKIP_VOTE) {
             await player_controller.voteToSkip(payload);
         } else if (payload_name == PAYLOAD.RESET) {
@@ -96,6 +98,7 @@ router.post('/player/reset', player_controller.startReset.bind(player_controller
 
 router.post('/artist', artist_controller.findArtist.bind(artist_controller));
 router.post('/find', tracks_controller.find.bind(tracks_controller));
+router.post('/remove', tracks_controller.removeTrack.bind(tracks_controller));
 router.post('/pop', tracks_controller.findPop.bind(tracks_controller));
 
 router.post('/whom', tracks_controller.whom.bind(tracks_controller));

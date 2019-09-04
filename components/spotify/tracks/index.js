@@ -55,6 +55,15 @@ class trackController {
             logger.error("Add track failed", error);
         }
     }
+
+    async removeTrack(req, res){
+        try {
+            console.log('test');
+            await this.tracks_service.removeTrack(req.body.user_id, req.body.response_url);
+        } catch (error) {
+            logger.error("Failed to remove track", error);
+        }
+    }
     
     async whom(req, res){
         try {
@@ -78,6 +87,15 @@ class trackController {
             await this.tracks_service.cancelSearch(payload.callback_id, payload.response_url);
         } catch (error) {
             logger.error("Cancelling search failed - ", error);
+        }
+    }
+
+    async removeFromPlaylist(payload){
+        try {
+            console.log(payload.actions[0].selected_options[0]);
+            await this.tracks_service.removeFromPlaylist(payload.actions[0].selected_options[0].value, payload.response_url);
+        } catch (error) {
+            logger.error("Failed to remove -", error);
         }
     }
     
