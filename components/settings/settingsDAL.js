@@ -4,7 +4,7 @@ const tracks = require('../../db/tracks');
 const logger = require('../../log/winston');
 
 function setSpotbotConfig(skip_votes, back_to_playlist, now_playing, disable_repeats_duration,
-    playlist, playlist_id, playlist_link, default_device, default_device_name, channel) {
+    playlist, playlist_id, playlist_link, default_device, default_device_name, channel, skip_votes_after_hours) {
     try {
         var spotbot_config = config.find(CONSTANTS.DB.COLLECTION.CONFIG);
         if (spotbot_config == null) {
@@ -12,6 +12,7 @@ function setSpotbotConfig(skip_votes, back_to_playlist, now_playing, disable_rep
             return; // Initialisation of Authorisation
         }
         spotbot_config.skip_votes = skip_votes;
+        spotbot_config.skip_votes_after_hours = skip_votes_after_hours;
         spotbot_config.back_to_playlist = back_to_playlist;
         spotbot_config.now_playing = now_playing;
         spotbot_config.disable_repeats_duration = disable_repeats_duration;
@@ -81,6 +82,10 @@ function getSkipVotes(){
     return getSpotbotConfig().skip_votes;
 }
 
+function getSkipVotesAfterHours(){
+    return getSpotbotConfig().skip_votes_after_hours;
+}
+
 function getNowPlaying(){
     return getSpotbotConfig().now_playing;
 }
@@ -101,6 +106,7 @@ module.exports = {
     getPlaylistLink,
     getPlaylistName,
     getSkipVotes,
+    getSkipVotesAfterHours,
     getSpotbotConfig,
     setSpotbotConfig,
     updateCurrent

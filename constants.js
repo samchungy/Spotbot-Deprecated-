@@ -77,7 +77,8 @@ module.exports = {
                 DISABLE_REPEATS : "The duration where no one can add the same song. Set it to 0 to allow repeats all the time. Integers only",
                 BACK_TO_PLAYLIST: "Enables the ability for Spotify to return to the playlist if it runs out of songs AND a new song is added",
                 NOW_PLAYING: "Sends a now playing message when a song changes",
-                SKIP_VOTES: "The number of additional votes needed to skip a song. Integers only"
+                SKIP_VOTES: "The number of additional votes needed to skip a song. Integers only",
+                SKIP_VOTES_AFTER_HOURS: "(6pm - 6am) The number of additional votes needed to skip a song. Integers only"
             }
         },
         PAYLOAD: {
