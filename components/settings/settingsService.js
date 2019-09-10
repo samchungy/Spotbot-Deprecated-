@@ -23,6 +23,7 @@ class settingsController {
         channel: "",
         disable_repeats_duration: "",
         skip_votes: "",
+        skip_votes_after_hours: "",
         back_to_playlist: "",
         now_playing: "",
         default_device_options: null,
@@ -55,7 +56,9 @@ class settingsController {
         new this.slack_formatter.selectDialogElement("now_playing", settings_list.now_playing, "Now playing messages",
           HINTS.NOW_PLAYING, yes_no_option).json,
         new this.slack_formatter.textDialogElement("skip_votes", settings_list.skip_votes, "Additional votes needed to skip",
-          HINTS.DISABLE_REPEATS, "2", null, "number").json
+          HINTS.SKIP_VOTES, "2", null, "number").json,
+        new this.slack_formatter.textDialogElement("skip_votes_after_hours", settings_list.skip_votes_after_hours, "Additional votes needed to skip (After Hours)",
+          HINTS.SKIP_VOTES_AFTER_HOURS, "1", null, "number").json
       ];
       let dialog = new this.slack_formatter.dialog(CONSTANTS.SLACK.PAYLOAD.SPOTBOT_CONFIG, "Spotbot Settings", "Save", elements).json;
       await this.slack_controller.sendDialog(trigger_id, dialog);
@@ -112,7 +115,7 @@ class settingsController {
       var spotbot_config = settings_dal.getSpotbotConfig();
       //Validate submissions
       var errors = [];
-      var number_submissions = ["disable_repeats_duration", "skip_votes"];
+      var number_submissions = ["disable_repeats_duration", "skip_votes", "skip_votes_after_hours"];
       for (let i of number_submissions) {
         if (!this.isPositiveInteger(submission[i])) {
           errors.push(new this.slack_formatter.dialogError(i, "Please enter a valid integer").json);
@@ -138,7 +141,7 @@ class settingsController {
             // If a playlist currently exists
             if (submission.playlist == playlist.name) {
               settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration,
-                submission.playlist, playlist.id, playlist.external_urls.spotify, device_id, device_name, submission.channel);
+                submission.playlist, playlist.id, playlist.external_urls.spotify, device_id, device_name, submission.channel, submission.skip_votes_after_hours);
               this.verifyNowPlaying(submission.now_playing);
               await this.slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
               return;
@@ -147,14 +150,14 @@ class settingsController {
           // Playlist does not exist so we need to make one.
           let createdPlaylist = await player_api.createPlaylist(this.spotify_auth_controller.getSpotifyUserId(), submission.playlist);
           settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration,
-            submission.playlist, createdPlaylist.body.id, createdPlaylist.body.external_urls.spotify, device_id, device_name, submission.channel);
+            submission.playlist, createdPlaylist.body.id, createdPlaylist.body.external_urls.spotify, device_id, device_name, submission.channel, submission.skip_votes_after_hours);
           this.verifyNowPlaying(submission.now_playing);
           await this.slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
           return;
 
         } else {
           settings_dal.setSpotbotConfig(submission.skip_votes, submission.back_to_playlist, submission.now_playing, submission.disable_repeats_duration,
-            submission.playlist, spotbot_config.playlist_id, spotbot_config.playlist_link, device_id, device_name, submission.channel);
+            submission.playlist, spotbot_config.playlist_id, spotbot_config.playlist_link, device_id, device_name, submission.channel, submission.skip_votes_after_hours);
           this.verifyNowPlaying(submission.now_playing);
           await this.slack_controller.reply(":white_check_mark: Settings successfully saved.", null, response_url);
           return;

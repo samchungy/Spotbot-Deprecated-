@@ -111,6 +111,10 @@ class settingsController {
     getSkipVotes(){
         return settings_dal.getSkipVotes();
     }
+
+    getSkipVotesAfterHours(){
+        return settings_dal.getSkipVotesAfterHours();
+    }
     
 }
 

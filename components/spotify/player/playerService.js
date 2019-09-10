@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const schedule = require('node-schedule');
-
+const moment = require('moment');
 const player_api = require('./playerAPI');
 const player_dal = require('./playerDAL');
 const logger = require('../../../log/winston');
@@ -178,6 +178,7 @@ class playerService {
     async startVoteToSkip(slack_user, response_url) {
         try {
             var skip_votes = this.settings_controller.getSkipVotes();
+            var skip_votes_after_hours = this.settings_controller.getSkipVotesAfterHours();
             var skip_track = player_dal.getSkip();
 
             let current_track = await player_api.getPlayingTrack();
@@ -193,6 +194,9 @@ class playerService {
                 if (skip_track.uri == current_track.body.item.uri) {
                     await this.slack_controller.reply(":information_source: There is already a vote to skip this song.", null, response_url);
                     return;
+                }
+                if (moment().isBefore(moment('6:00', 'hh:mm')) || moment().isAfter(moment('18:00', 'hh:mm'))){
+                    skip_votes = skip_votes_after_hours;
                 }
                 if (skip_votes == 0) {
                     await player_api.skip();
