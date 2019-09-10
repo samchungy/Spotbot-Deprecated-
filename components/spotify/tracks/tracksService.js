@@ -178,7 +178,7 @@ class trackService {
                 } else {
                     array = [track_uri];
                 }
-                await this.setBackToPlaylist(playlist_id, array, current_track);
+                await this.setBackToPlaylist(playlist_id, array);
                 text += " Spotify will return to the playlist after this song."
             } else{
                 // Already on the playlist
@@ -210,10 +210,31 @@ class trackService {
      * @param {string[]} tracks
      * @param {*} current_track Spotifyapi current track response
      */
-    async setBackToPlaylist(playlist_id, tracks, current_track){
+    async setBackToPlaylist(playlist_id, tracks){
         try {
-            await tracks_api.addTracks(playlist_id, tracks);
+            // Remove any song that is unplayable from playlist
             let playlist = await tracks_api.getPlaylist(playlist_id);
+            var num_of_searches = Math.ceil(playlist.body.tracks.total/100);
+            var all_promises = [];
+            for (let offset = 0; offset < num_of_searches ; offset++){
+                all_promises.push(new Promise(async (resolve, reject) => {
+                    let playlist_tracks = await tracks_api.getPlaylistTracks(playlist_id, offset);
+                    resolve(_.get(playlist_tracks, 'body.items'));
+                }));
+            }
+            let all_tracks = await Promise.all(all_promises);
+            all_tracks = _.flatten(all_tracks);
+            let tracks_to_remove = [];
+            
+            for (let track of all_tracks){
+                if(!track.track.is_playable){
+                    tracks_to_remove.push(track.track.uri)
+                }
+            }
+            await tracks_api.removeTracks(playlist_id, tracks_to_remove);
+
+            await tracks_api.addTracks(playlist_id, tracks);
+            playlist = await tracks_api.getPlaylist(playlist_id);
             var num_of_searches = Math.ceil(_.get(playlist, 'body.tracks.total')/100);
             // Find track's last added location. We will have to search the playlist part by part from back to front.
             for (let offset = num_of_searches - 1; offset >= 0; offset--) {
@@ -223,6 +244,7 @@ class trackService {
                     return track.track.uri == tracks[0]
                 });
                 if (index != -1){
+                    let current_track = await tracks_api.getPlayingTrack();
                     await tracks_api.playWithContext(playlist_id, offset*100+index, current_track.body.progress_ms);
                     if (current_track.body.is_playing == false){
                         await tracks_api.pause();
