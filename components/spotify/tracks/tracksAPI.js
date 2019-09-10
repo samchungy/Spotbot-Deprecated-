@@ -52,8 +52,9 @@ async function getMaxSearchTracks(query){
 async function getPlaylistTracks(playlist_id, offset){
     try{
         return await spotify_api.getPlaylistTracks(playlist_id, {
+            market: "AU",
             offset: offset*100,
-            fields: "items(track(uri,name,artists,explicit),added_by.id,added_at)"
+            fields: "items(track(uri,name,artists,explicit,is_playable),added_by.id,added_at)"
         });
     } catch (error) {
         logger.error(`Spotify API: Get playlist tracks failed.`, error);
@@ -126,6 +127,22 @@ async function removeTrack(playlist_id, track_uri) {
     }
 }
 
+async function removeTracks(playlist_id, track_uris) {
+    try {
+        let uris = [];
+        for (let uri of track_uris){
+            uris.push(
+                {
+                    uri: uri
+                }
+            );
+        }
+        await spotify_api.removeTracksFromPlaylist(playlist_id, uris);
+    } catch (error) {
+        logger.error(`Spotify API: Remove track failed. - `, error);
+    }
+}
+
 module.exports = {
     addTracks,
     getMaxSearchTracks,
@@ -138,5 +155,6 @@ module.exports = {
     getUserProfile,
     pause,
     playWithContext,
-    removeTrack
+    removeTrack,
+    removeTracks
 }
