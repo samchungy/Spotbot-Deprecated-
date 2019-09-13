@@ -49,6 +49,16 @@ async function pause(){
     }
 }
 
+async function playPlaylist(playlist_id){
+    try {
+        return await spotify_api.play({
+            context_uri: `spotify:playlist:${playlist_id}`
+        });
+    } catch (error) {
+        logger.error(`Spotify API: Pause failed.`, error);
+    }
+}
+
 
 async function getPlaybackState(){
     try {
@@ -102,14 +112,28 @@ async function reset(playlist_id){
     }
 }
 
+
+async function getPlaylist(playlist_id){
+    try {
+        return await spotify_api.getPlaylist(playlist_id, {
+            fields: "tracks.total"
+        });
+    } catch (error) {
+        logger.error(`Spotify API: Get playlist failed.`, error);
+        throw Error(error);
+    }
+}
+
 module.exports = {
     createPlaylist,
     getAllPlaylists,
     getDevices,
     getPlaybackState,
     getPlayingTrack,
+    getPlaylist,
     pause,
     play,
+    playPlaylist,
     reset,
     skip,
     transferPlayback

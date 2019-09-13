@@ -173,7 +173,8 @@ class trackService {
             if (back_to_playlist == "yes" && current_track.statusCode != 204 && !this.player_controller.onPlaylist(current_track.body.context, playlist_id)){
                 let array;
                 // Check if the song we are adding is the song currently playing.
-                if (current_track.body.item.uri != track_uri){
+                let cur_track = _.get(current_track, "body.item.uri");
+                if (cur_track && cur_track != track_uri){
                     array = [current_track.body.item.uri, track_uri];
                 } else {
                     array = [track_uri];
@@ -245,11 +246,15 @@ class trackService {
                 });
                 if (index != -1){
                     let current_track = await tracks_api.getPlayingTrack();
-                    await tracks_api.playWithContext(playlist_id, offset*100+index, current_track.body.progress_ms);
-                    if (current_track.body.is_playing == false){
-                        await tracks_api.pause();
+                    if (current_track.statusCode != 204 && current_track.body.item == null){
+                        await tracks_api.playWithContext(playlist_id, offset*100+index, 0);
+                    } else {
+                        await tracks_api.playWithContext(playlist_id, offset*100+index, current_track.body.progress_ms);
+                        if (current_track.body.is_playing == false){
+                            await tracks_api.pause();
+                        }
+                        return;
                     }
-                    return;
                 }
             }
         } catch (error) {
