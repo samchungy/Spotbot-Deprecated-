@@ -16,19 +16,38 @@ class playerService {
      * Hits play on Spotify
      */
     async play(response_url) {
+        var playlist_id = this.settings_controller.getPlaylistId();
         try {
             // Find our current playback state
             let player_info = await player_api.getPlaybackState();
-            if (_.get(player_info, 'body.is_playing')) {
+            if (_.get(player_info, 'body.is_playing') && _.get(player_info, 'body.item')) {
                 await this.slack_controller.inChannelReply(":information_source: Spotify is already playing.", null, response_url);
                 return;
             }
             // Try regular play method
             if (_.get(player_info, 'body.device')) {
-                await player_api.play();
-                await this.slack_controller.inChannelReply(":arrow_forward: Spotify is now playing.", null, response_url);
-                return;
+                if (!(_.get(player_info, 'body.is_playing'))){
+                    await player_api.play();
+                }
+                player_info = await player_api.getPlaybackState();
+                if (_.get(player_info, 'body.is_playing')) {
+                    if (_.get(player_info, 'body.item')){
+                        await this.slack_controller.inChannelReply(":arrow_forward: Spotify is now playing.", null, response_url);
+                        return;
+                    } else {
+                        let playlist = await player_api.getPlaylist(playlist_id);
+                        if (_.get(playlist,"body.tracks.total") == 0){
+                            await this.slack_controller.inChannelReply(":confused: The playlist has no tracks, please add a track", null, response_url);
+                            return;
+                        } else {
+                            await player_api.playPlaylist(playlist_id);
+                            await this.slack_controller.inChannelReply(":arrow_forward: Spotify is now playing.", null, response_url);
+                            return;
+                        }
+                    }
+                }
             }
+
             // Try spotify transfer to device workaround
             logger.info("Trying Spotify transfer playback workaround");
             let device_list = await player_api.getDevices();
@@ -42,7 +61,23 @@ class playerService {
             });
             if (device) {
                 await player_api.transferPlayback(device.id);
-                await this.slack_controller.inChannelReply(":arrow_forward: Spotify is now playing.", null, response_url);
+                player_info = await player_api.getPlaybackState();
+                if (_.get(player_info, 'body.is_playing')) {
+                    if (_.get(player_info, 'body.item')){
+                        await this.slack_controller.inChannelReply(":arrow_forward: Spotify is now playing.", null, response_url);
+                        return;
+                    } else {
+                        let playlist = await player_api.getPlaylist(playlist_id);
+                        if (_.get(playlist,"body.tracks.total") == 0){
+                            await this.slack_controller.inChannelReply(":confused: The playlist has no tracks, please add a track", null, response_url);
+                            return;
+                        } else {
+                            await player_api.playPlaylist(playlist_id);
+                            await this.slack_controller.inChannelReply(":arrow_forward: Spotify is now playing.", null, response_url);
+                            return;
+                        }
+                    }
+                }
                 return;
             }
         } catch (error) {
