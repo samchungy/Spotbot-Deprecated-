@@ -296,8 +296,11 @@ class trackService {
                         let found_track = track_list[index];
                         if (previous_track == null || found_track.added_by.id != spotify_user_id) {
                             let user_profile = await tracks_api.getUserProfile(found_track.added_by.id);
-                            await this.slack_controller.inChannelReply(`:white_frowning_face: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""} was added ${moment(found_track.added_at).fromNow()} directly to the playlist in Spotify by <${user_profile.body.external_urls.spotify}|${user_profile.body.display_name}>.`, null, response_url);
-                            return;            
+                            let message = `:white_frowning_face: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""} was added ${moment(found_track.added_at).fromNow()} directly to the playlist in Spotify by <${user_profile.body.external_urls.spotify}|${user_profile.body.display_name}>.`;
+                            if (found_track.added_by.id == spotify_user_id){
+                                message += ` (Spotify is most likely returning to the playlist)`;
+                            }
+                            await this.slack_controller.inChannelReply(message, null, response_url);                            return;            
                         }
                         else{
                             await this.slack_controller.inChannelReply(`:microphone: ${current_track.body.item.artists[0].name} - ${current_track.body.item.name}${current_track.body.item.explicit ? " (Explicit)" : ""} was last added ${moment(previous_track.time_added).fromNow()} by <@${previous_track.user_id}>.`, null, response_url);
