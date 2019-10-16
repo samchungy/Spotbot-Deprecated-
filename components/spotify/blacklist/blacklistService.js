@@ -6,9 +6,9 @@ const blacklist_api = require('./blacklistAPI');
 const blacklist_dal = require('./blacklistDAL');
 
 class blacklistService {
-    constructor(slack_controller, slack_formatter, settings_controller){
+    constructor(slack_controller, settings_controller){
         this.slack_controller = slack_controller;
-        this.slack_formatter = slack_formatter;
+        this.slack_formatter = slack_controller.slack_formatter;
         this.settings_controller = settings_controller;
     }
     async blacklistCurrent(user_id, response_url) {
@@ -90,8 +90,8 @@ class blacklistService {
 
 }
 
-function create(slack_controller, slack_formatter, settings_controller){
-    return new blacklistService(slack_controller, slack_formatter, settings_controller);
+function create(slack_controller, settings_controller){
+    return new blacklistService(slack_controller, settings_controller);
 }
 
 

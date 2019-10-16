@@ -6,10 +6,10 @@ const spotify_auth_api = require('./spotifyAuthAPI').spotifyApi;
 const spotify_auth_dal = require('./spotifyAuthDAL');
 
 class spotifyAuthController {
-    constructor(slack_controller, slack_formatter){
+    constructor(slack_controller){
         this.slack_controller = slack_controller;
         this.spotifyApi = spotify_auth_api;
-        this.spotify_auth_service = spotifyAuthService.create(slack_controller, slack_formatter);
+        this.spotify_auth_service = spotifyAuthService.create(slack_controller);
     }
     async initialise() {
         await this.spotify_auth_service.initialise();
@@ -59,8 +59,8 @@ class spotifyAuthController {
     
 }
 
-function create(slack_controller, slack_formatter){
-    return new spotifyAuthController(slack_controller, slack_formatter);
+function create(slack_controller){
+    return new spotifyAuthController(slack_controller);
 }
 
 

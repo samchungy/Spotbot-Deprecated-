@@ -7,9 +7,9 @@ const logger = require('../../../log/winston');
 const CONSTANTS = require('../../../constants');
 
 class playerService {
-    constructor(slack_controller, slack_formatter, settings_controller) {
+    constructor(slack_controller, settings_controller) {
         this.slack_controller = slack_controller;
-        this.slack_formatter = slack_formatter;
+        this.slack_formatter = slack_controller.slack_formatter;
         this.settings_controller = settings_controller;
     }
     /**
@@ -283,8 +283,8 @@ class playerService {
 
 }
 
-function create(slack_controller, slack_formatter, settings_controller){
-    return new playerService(slack_controller, slack_formatter, settings_controller);
+function create(slack_controller, settings_controller){
+    return new playerService(slack_controller, settings_controller);
 }
 
 

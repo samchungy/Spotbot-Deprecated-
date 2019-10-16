@@ -6,9 +6,9 @@ const artist_api = require('./artistAPI');
 const artist_dal = require('./artistDAL');
 
 class artistService {
-    constructor(slack_controller, slack_formatter) {
+    constructor(slack_controller) {
         this.slack_controller = slack_controller;
-        this.slack_formatter = slack_formatter;
+        this.slack_formatter = slack_controller.slack_formatter;
     }
     async findArtist(query, trigger_id, response_url) {
         try {
@@ -90,8 +90,8 @@ class artistService {
     
 }
 
-function create(slack_controller, slack_formatter){
-    return new artistService(slack_controller, slack_formatter);
+function create(slack_controller){
+    return new artistService(slack_controller);
 }
 
 

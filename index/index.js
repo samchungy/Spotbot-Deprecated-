@@ -14,14 +14,13 @@ const track = require('../components/spotify/tracks');
 const init = require('../db/init');
 
 const slack_controller = slack.create();
-const slack_formatter = slack_controller.slack_formatter;
-const spotify_auth_controller = spotify_auth.create(slack_controller, slack_formatter);
+const spotify_auth_controller = spotify_auth.create(slack_controller);
 const admin_controller = admin.create(slack_controller);
-const settings_controller = settings.create(slack_controller, slack_formatter, admin_controller, spotify_auth_controller);
-const blacklist_controller = blacklist.create(slack_controller, slack_formatter, settings_controller);
-const player_controller = player.create(slack_controller, slack_formatter, settings_controller);
-const tracks_controller = track.create(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
-const artist_controller = artist.create(slack_controller, slack_formatter, tracks_controller);
+const settings_controller = settings.create(slack_controller, admin_controller, spotify_auth_controller);
+const blacklist_controller = blacklist.create(slack_controller, settings_controller);
+const player_controller = player.create(slack_controller, settings_controller);
+const tracks_controller = track.create(slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
+const artist_controller = artist.create(slack_controller, tracks_controller);
 init.initialise(settings_controller, spotify_auth_controller, tracks_controller);
 
 router.get('/settings/auth', spotify_auth_controller.getTokens.bind(spotify_auth_controller));

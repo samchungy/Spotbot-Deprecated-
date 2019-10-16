@@ -8,9 +8,9 @@ const tracks_dal = require('./tracksDAL');
 const CONSTANTS = require('../../../constants');
 
 class trackService {
-    constructor (slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
+    constructor (slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
         this.slack_controller = slack_controller;
-        this.slack_formatter = slack_formatter;
+        this.slack_formatter = slack_controller.slack_formatter;
         this.settings_controller = settings_controller;
         this.player_controller = player_controller;
         this.blacklist_controller = blacklist_controller;
@@ -407,8 +407,8 @@ class trackService {
     
 }
 
-function create(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
-    return new trackService(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
+function create(slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
+    return new trackService(slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
 }
 
 

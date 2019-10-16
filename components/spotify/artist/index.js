@@ -2,8 +2,8 @@ const logger = require('../../../log/winston');
 const artist = require('./artistService');
 
 class artistController {
-    constructor(slack_controller, slack_formatter, track_controller){
-        this.artist_service = artist.create(slack_controller, slack_formatter, track_controller);
+    constructor(slack_controller, track_controller){
+        this.artist_service = artist.create(slack_controller, track_controller);
         this.track_controller = track_controller;
     }
     async findArtist(req, res){
@@ -33,8 +33,8 @@ class artistController {
     
 }
 
-function create(slack_controller, slack_formatter, track_controller){
-    return new artistController(slack_controller, slack_formatter, track_controller);
+function create(slack_controller, track_controller){
+    return new artistController(slack_controller, track_controller);
 }
 
 module.exports = {

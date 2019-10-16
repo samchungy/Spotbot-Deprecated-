@@ -2,8 +2,8 @@ const logger = require('../../../log/winston');
 const blacklistService = require('./blacklistService');
 
 class blacklistController {
-    constructor(slack_controller, slack_formatter, settings_controller){
-        this.blacklist_service = blacklistService.create(slack_controller, slack_formatter, settings_controller);
+    constructor(slack_controller, settings_controller){
+        this.blacklist_service = blacklistService.create(slack_controller, settings_controller);
     }
     async blacklistMenu (req, res, array){
         try {
@@ -31,8 +31,8 @@ class blacklistController {
     
 }
 
-function create(slack_controller ,slack_formatter, settings_controller){
-    return new blacklistController(slack_controller, slack_formatter, settings_controller);
+function create(slack_controller, settings_controller){
+    return new blacklistController(slack_controller, settings_controller);
 }
 
 

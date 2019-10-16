@@ -3,9 +3,9 @@ const settings = require('./settingsService');
 const logger = require('../../log/winston');
 
 class settingsController {
-    constructor(slack_controller, slack_formatter, admin_controller, spotify_auth_controller){
+    constructor(slack_controller, admin_controller, spotify_auth_controller){
         this.slack_controller = slack_controller;
-        this.settings_service = settings.create(slack_controller, slack_formatter, admin_controller, spotify_auth_controller);
+        this.settings_service = settings.create(slack_controller, admin_controller, spotify_auth_controller);
     }
 
     async settings (req, res) {
@@ -118,8 +118,8 @@ class settingsController {
     
 }
 
-function create(slack_controller, slack_formatter, admin_controller, spotify_auth_controller){
-    return new settingsController(slack_controller, slack_formatter, admin_controller, spotify_auth_controller);
+function create(slack_controller, admin_controller, spotify_auth_controller){
+    return new settingsController(slack_controller, admin_controller, spotify_auth_controller);
 }
 
 module.exports = { create }

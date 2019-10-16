@@ -7,9 +7,9 @@ const HINTS = CONSTANTS.SLACK.DIALOG.HINTS;
 const logger = require('../../log/winston');
 
 class settingsController {
-  constructor (slack_controller, slack_formatter, admin_controller, spotify_auth_controller){
+  constructor (slack_controller, admin_controller, spotify_auth_controller){
     this.slack_controller = slack_controller;
-    this.slack_formatter = slack_formatter;
+    this.slack_formatter = slack_controller.slack_formatter;
     this.admin_controller = admin_controller;
     this.spotify_auth_controller = spotify_auth_controller;
   }
@@ -268,8 +268,8 @@ removeNowPlaying() {
 
 }
 
-function create(slack_controller, slack_formatter, admin_controller, spotify_auth_controller){
-  return new settingsController(slack_controller, slack_formatter, admin_controller, spotify_auth_controller);
+function create(slack_controller, admin_controller, spotify_auth_controller){
+  return new settingsController(slack_controller, admin_controller, spotify_auth_controller);
 }
 
 module.exports = {

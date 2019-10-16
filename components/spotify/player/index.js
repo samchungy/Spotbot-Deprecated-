@@ -2,8 +2,8 @@ const player = require('./playerService');
 const logger = require('../../../log/winston');
 
 class player_controller{
-    constructor(slack_controller, slack_formatter, settings_controller){
-        this.player_service = player.create(slack_controller, slack_formatter, settings_controller);
+    constructor(slack_controller, settings_controller){
+        this.player_service = player.create(slack_controller, settings_controller);
     }
     async play(req, res) {
         try {
@@ -97,8 +97,8 @@ class player_controller{
     
 }
 
-function create(slack_controller, slack_formatter, settings_controller){
-    return new player_controller(slack_controller, slack_formatter, settings_controller);
+function create(slack_controller, settings_controller){
+    return new player_controller(slack_controller, settings_controller);
 }
 
 

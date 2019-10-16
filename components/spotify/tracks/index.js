@@ -4,9 +4,9 @@ const CONSTANTS = require('../../../constants');
 const logger = require('../../../log/winston');
 
 class trackController {
-    constructor(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
+    constructor(slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
         this.slack_controller = slack_controller;
-        this.tracks_service = tracks.create(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
+        this.tracks_service = tracks.create(slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
     }
     async find(req, res){
         try {
@@ -101,8 +101,8 @@ class trackController {
     
 }
 
-function create(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
-    return new trackController(slack_controller, slack_formatter, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
+function create(slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller){
+    return new trackController(slack_controller, settings_controller, player_controller, blacklist_controller, spotify_auth_controller);
 }
 
 
